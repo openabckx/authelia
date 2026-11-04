@@ -1,0 +1,21 @@
+# .github/workflows/esteira.yml -- toda a pegada da esteira neste repo. O resto esta em esteira.app.yml (docs/CONTRATO.md da esteira).
+# Precisa dos secrets APP_ID e APP_PRIVATE_KEY (GitHub App de release); NENHUM segredo de servidor.
+# PIN PROVISORIO: SHA da cabeca da branch cto/esteira-e3-pipeline. Depois do merge do E3, trocar por @v2 (ou pelo SHA do merge).
+# 🔴 NAO MERGEAR antes dos bloqueios da PR (esteira privada em OUTRA org; release por tag `abckx-v*`): hoje este caller nao roda.
+# A branch de entrega deste fork e `abckx` (master espelha o upstream, sem commits nossos).
+name: esteira
+on:
+  pull_request:
+    branches: [abckx]
+  push: {branches: [abckx]}
+  workflow_dispatch:          # operacoes a mao: a CLI `esteira` preenche (bin/esteira)
+    inputs:
+      acao: {description: "release | deploy | promover | rollback | check", required: true, type: string}
+      ambiente: {description: "dev | prod", required: false, type: string}
+      alvo: {description: "digest sha256:... ou tag da release", required: false, type: string}
+      servidor: {description: "um servidor do ambiente (rollback / check)", required: false, type: string}
+permissions: {contents: write, pull-requests: write, packages: write, deployments: write}
+jobs:
+  esteira:
+    uses: inteligenciaavancada/esteira/.github/workflows/pipeline.yml@99ab7201b856044f6e3a7141d632e448752b6e76
+    secrets: inherit

@@ -1,0 +1,35 @@
+# esteira.app.yml -- fork abckx do Authelia (IdP). Contrato v1 (inteligenciaavancada/esteira docs/CONTRATO.md).
+# `ate: dev`: a esteira leva ate o dev-04 e PARA. Um IdP nunca vai a prod sozinho (decisao do Founder, 04/11):
+# nao ha bloco `prod` aqui de proposito. Prod, quando existir, entra por PR que acrescenta `ambientes.prod` com
+# `promocao: manual` e o Founder/CTO decidindo.
+versao: 1
+app: authelia
+dono: ismael-iavancada             # CONFIRMAR o responsavel pelo IdP
+
+ate: dev
+
+imagem:
+  nome: ghcr.io/abckxopen/authelia
+  dockerfile: abckx/Dockerfile     # a imagem OFICIAL (pinada por digest) + abckx/assets; o core nao e tocado
+  contexto: abckx                  # o .dockerignore do upstream exclui o resto do repo
+  release-tipo: simple
+
+# O que ESTE repo muda e a camada abckx/. O core vem pinado: rodar `go test ./...` do Authelia inteiro aqui testaria
+# codigo do upstream que nao e nosso. O que pode quebrar na nossa camada e o build da imagem.
+teste:
+  tipo: comando
+  comando: docker build -f abckx/Dockerfile -t authelia-abckx-teste abckx
+
+# /api/health do Authelia: {"status":"OK"}. NAO traz versao: o verde prova que o portal responde, nao QUAL imagem
+# responde. A prova da imagem nova e o healthcheck do container no gate (health_wait_s) + o digest em
+# /var/lib/deploy/authelia.env.
+smoke:
+  caminho: /api/health
+  espera: '"status":"OK"'
+  timeout-s: 120
+
+ambientes:
+  dev:
+    stack: authelia
+    servidores:
+      - {nome: dev-04, url: "https://auth-dev-04.abckx.com.br"}
