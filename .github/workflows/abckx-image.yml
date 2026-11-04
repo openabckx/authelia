@@ -31,7 +31,7 @@ jobs:
             type=sha,prefix=abckx-
       - uses: docker/build-push-action@v6
         with:
-          context: .
+          context: abckx
           file: abckx/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
