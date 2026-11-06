@@ -77,7 +77,7 @@ notifier:
         if args.image:
             uid = subprocess.check_output(["docker", "run", "--rm", args.image, "id", "-u"], text=True).strip()
             assert uid != "0", "image runs as root"
-            command = ["docker", "run", "--rm", "--name", name, "-p", f"127.0.0.1:{port}:9091",
+            command = ["docker", "run", "--name", name, "-p", f"127.0.0.1:{port}:9091",
                        "-v", f"{directory}:/smoke:ro", "-v", f"{data}:/smoke/data:rw"]
             for key, value in branding.items():
                 command.extend(["-e", f"{key}={value}"])
@@ -95,8 +95,13 @@ notifier:
                 try:
                     html = wait_for_login(f"http://127.0.0.1:{port}/", process)
                 except RuntimeError:
-                    log.seek(0)
-                    print(re.sub(r"[0-9a-f]{64}", "[redacted]", log.read()), flush=True)
+                    if args.image:
+                        diagnostic = subprocess.run(["docker", "logs", name], stdout=subprocess.PIPE,
+                                                    stderr=subprocess.STDOUT, text=True, check=False).stdout
+                    else:
+                        log.seek(0)
+                        diagnostic = log.read()
+                    print(re.sub(r"[0-9a-f]{64}", "[redacted]", diagnostic), flush=True)
                     raise
                 for expected in ('data-brandingtext="Fork CI &amp; branding"',
                                  'data-brandingurl="https://example.com/branding"'):
@@ -106,7 +111,7 @@ notifier:
                 print("PASS: source-built runtime serves escaped branding and compiled portal assets", flush=True)
             finally:
                 if args.image:
-                    subprocess.run(["docker", "stop", name], check=False, stdout=subprocess.DEVNULL)
+                    subprocess.run(["docker", "rm", "--force", name], check=False, stdout=subprocess.DEVNULL)
                 process.terminate()
                 process.wait(timeout=15)
 

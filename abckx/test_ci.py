@@ -38,6 +38,12 @@ class WorkflowContract(unittest.TestCase):
         for action in re.findall(r"uses: (\S+)", workflow):
             self.assertRegex(action, r"@[0-9a-f]{40}$")
 
+    def test_version_has_one_source_for_metadata_and_binary(self):
+        workflow = (ROOT / ".github/workflows/abckx-image.yml").read_text()
+        self.assertIn("type=raw,value=${{ steps.version.outputs.version }}", workflow)
+        self.assertNotIn("type=sha", workflow)
+        self.assertIn("VERSION=${{ steps.version.outputs.version }}", workflow)
+
     def test_pr_build_typecheck_and_test_gate_exists(self):
         path = ROOT / ".github/workflows/abckx-ci.yml"
         self.assertTrue(path.exists(), "fork PRs need their own validation")
