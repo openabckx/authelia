@@ -1,0 +1,56 @@
+name: abckx-ci
+
+on:
+  pull_request:
+    branches: [abckx]
+  push:
+    branches: [abckx]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: authelia
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: authelia
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: authelia/go.mod
+          cache-dependency-path: authelia/go.sum
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '26.12.1'
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: '12.18.0'
+          run_install: false
+      - name: Fork build contracts
+        run: python3 -m unittest discover -s abckx -v
+      - name: Install locked web dependencies
+        run: pnpm --dir web install --frozen-lockfile --ignore-scripts
+      - name: Typecheck and test the complete portal
+        working-directory: authelia/web
+        env:
+          CI: 'true'
+        run: |
+          pnpm exec tsc --noEmit
+          pnpm test
+      # Run before Vite replaces the server's tracked test placeholders.
+      - name: Test the fork branding Go packages
+        run: go test -timeout 600s ./internal/configuration/... ./internal/server/... ./internal/templates/...
+      - name: Build the frontend and backend
+        working-directory: authelia/web
+        run: |
+          pnpm build
+          cd ..
+          rm -rf internal/server/public_html/api
+          cp -R api internal/server/public_html/api
+          go build -trimpath -o "$RUNNER_TEMP/authelia" ./cmd/authelia

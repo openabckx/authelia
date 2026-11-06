@@ -22,7 +22,7 @@ jobs:
     name: Generate Card
     runs-on: ubuntu-latest
     # A pull request from a fork is given a read only token, which cannot commit the card back.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.repository == 'authelia/authelia' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: write
     steps:
