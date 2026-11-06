@@ -2,6 +2,7 @@
 import argparse
 import os
 import pathlib
+import re
 import secrets
 import socket
 import subprocess
@@ -27,7 +28,12 @@ def main():
         data.mkdir(mode=0o777)
         data.chmod(0o777)  # Disposable test volume, writable by the image's UID 1000.
         config_root = "/smoke" if args.image else directory
-        (root / "users.yml").write_text("users: {}\n")
+        runtime = ["docker", "run", "--rm", args.image, "authelia"] if args.image else [args.binary]
+        generated = subprocess.check_output(runtime + ["crypto", "hash", "generate", "argon2", "--random"], text=True)
+        digest = next(line.removeprefix("Digest: ").strip() for line in generated.splitlines()
+                      if line.startswith("Digest: "))
+        (root / "users.yml").write_text(
+            f"users:\n  smoke:\n    disabled: true\n    displayname: Smoke\n    password: '{digest}'\n")
         (root / "configuration.yml").write_text(f"""
 server:
   address: 'tcp://{'0.0.0.0:9091' if args.image else f'127.0.0.1:{port}'}'
@@ -40,7 +46,7 @@ authentication_backend:
   file:
     path: '{config_root}/users.yml'
 access_control:
-  default_policy: deny
+  default_policy: two_factor
 session:
   secret: '{secrets.token_hex(32)}'
   cookies:
@@ -83,7 +89,9 @@ notifier:
                         break
                     except (urllib.error.URLError, TimeoutError):
                         if process.poll() is not None or time.monotonic() > deadline:
-                            raise RuntimeError("Runtime did not serve login HTML; inspect the local smoke log")
+                            log.seek(0)
+                            print(re.sub(r"[0-9a-f]{64}", "[redacted]", log.read()), flush=True)
+                            raise RuntimeError("Runtime did not serve login HTML")
                         time.sleep(0.5)
                 for expected in ('data-brandingtext="Fork CI &amp; branding"',
                                  'data-brandingurl="https://example.com/branding"'):
