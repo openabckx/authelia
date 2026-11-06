@@ -10,6 +10,8 @@ import (
 	"io/fs"
 	"path"
 	tt "text/template"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // New creates a new templates' provider.
@@ -20,6 +22,12 @@ func New(config Config) (provider *Provider, err error) {
 
 	if err = provider.load(); err != nil {
 		return nil, err
+	}
+
+	funcs := map[string]any{"branding": func() schema.Branding { return config.Branding }}
+	for _, email := range []*EmailTemplate{provider.templates.notification.event, provider.templates.notification.jwtIdentityVerification, provider.templates.notification.otcIdentityVerification} {
+		email.HTML.Funcs(funcs)
+		email.Text.Funcs(funcs)
 	}
 
 	return provider, nil

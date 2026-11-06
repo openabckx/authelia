@@ -28,11 +28,14 @@ import (
 
 	"github.com/google/uuid"
 	"go.yaml.in/yaml/v4"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // FuncMap returns the template FuncMap commonly used in several templates.
 func FuncMap() map[string]any {
 	return map[string]any{
+		"branding":       func() schema.Branding { return schema.Branding{} },
 		"iterate":        FuncIterate,
 		"fileContent":    FuncFileContent,
 		"secret":         FuncSecret,

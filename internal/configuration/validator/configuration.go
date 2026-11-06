@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -78,6 +79,13 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidatePasswordPolicy(&config.PasswordPolicy, validator)
 
 	ValidatePrivacyPolicy(&config.PrivacyPolicy, validator)
+
+	if config.Branding.URL != "" {
+		u, parseErr := url.Parse(config.Branding.URL)
+		if parseErr != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil {
+			validator.Push(fmt.Errorf("branding: option 'url' must be an absolute HTTPS URL without credentials"))
+		}
+	}
 }
 
 func validateDefault2FAMethod(config *schema.Configuration, validator *schema.StructValidator) {

@@ -49,7 +49,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		errs = append(errs, err)
 	}
 
-	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
+	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath, Branding: config.Branding}); err != nil {
 		errs = append(errs, err)
 	}
 

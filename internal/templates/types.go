@@ -8,6 +8,8 @@ import (
 	th "html/template"
 	"io"
 	tt "text/template"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // Templates is the struct which holds all the *[html/template.Template] and *[text/template.Template] values.
@@ -51,6 +53,7 @@ type Template interface {
 
 // Config for the Provider.
 type Config struct {
+	Branding           schema.Branding
 	EmailTemplatesPath string
 }
 

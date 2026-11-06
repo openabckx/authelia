@@ -18,4 +18,4 @@ Event Details:
 
 This notification was intended for {{ .DisplayName }}. This event notification was generated due to an action from {{ .RemoteIP }}. If you do not believe that your actions could have triggered this event or if you are concerned about your account's safety, please change your password and reach out to an administrator.
 
-Powered by Authelia https://www.authelia.com
+{{ $brand := branding }}{{ if ne $brand.Text nil }}{{ if $brand.Visible }}{{ if $brand.URL }}{{ $brand.Text }} {{ $brand.URL }}{{ else }}{{ $brand.Text }}{{ end }}{{ end }}{{ else }}Powered by Authelia https://www.authelia.com{{ end }}
