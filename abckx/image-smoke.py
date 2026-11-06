@@ -8,8 +8,19 @@ import socket
 import subprocess
 import tempfile
 import time
-import urllib.error
 import urllib.request
+
+
+def wait_for_login(url, process):
+    deadline = time.monotonic() + 90
+    while True:
+        try:
+            with urllib.request.urlopen(url, timeout=2) as response:
+                return response.read().decode()
+        except OSError:
+            if process.poll() is not None or time.monotonic() > deadline:
+                raise RuntimeError("Runtime did not serve login HTML") from None
+            time.sleep(0.5)
 
 
 def main():
@@ -81,18 +92,12 @@ notifier:
         with (root / "runtime.log").open("w+") as log:
             process = subprocess.Popen(command, env={**os.environ, **branding}, stdout=log, stderr=log)
             try:
-                deadline = time.monotonic() + 90
-                while True:
-                    try:
-                        with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=2) as response:
-                            html = response.read().decode()
-                        break
-                    except (urllib.error.URLError, TimeoutError):
-                        if process.poll() is not None or time.monotonic() > deadline:
-                            log.seek(0)
-                            print(re.sub(r"[0-9a-f]{64}", "[redacted]", log.read()), flush=True)
-                            raise RuntimeError("Runtime did not serve login HTML")
-                        time.sleep(0.5)
+                try:
+                    html = wait_for_login(f"http://127.0.0.1:{port}/", process)
+                except RuntimeError:
+                    log.seek(0)
+                    print(re.sub(r"[0-9a-f]{64}", "[redacted]", log.read()), flush=True)
+                    raise
                 for expected in ('data-brandingtext="Fork CI &amp; branding"',
                                  'data-brandingurl="https://example.com/branding"'):
                     assert expected in html, f"missing {expected}"
