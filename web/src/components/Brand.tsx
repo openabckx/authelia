@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Fragment } from "react";
-
 import { useTranslation } from "react-i18next";
 
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";
@@ -15,25 +13,29 @@ export interface Props {}
 
 const Brand = function () {
     const { t: translate } = useTranslation();
-
     const privacyEnabled = getPrivacyPolicyEnabled();
+    const custom = document.body.dataset.brandingcustom === "true";
+    const text = custom
+        ? (document.body.dataset.brandingtext ?? "")
+        : translate("Powered by {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
+    const url = custom ? (document.body.dataset.brandingurl ?? "") : atob(String.fromCodePoint(...EncodedURL));
+    const className = "text-[#9e9e9e] text-[0.7rem] whitespace-nowrap hover:underline";
+
+    if (!text && !privacyEnabled) return null;
 
     return (
         <div className="flex items-center justify-center gap-2 w-full">
-            <a
-                href={atob(String.fromCodePoint(...EncodedURL))}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#9e9e9e] text-[0.7rem] whitespace-nowrap hover:underline"
-            >
-                {translate("Powered by {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) })}
-            </a>
-            {privacyEnabled ? (
-                <Fragment>
-                    <Separator orientation="vertical" className="h-4" />
-                    <PrivacyPolicyLink className="text-[#9e9e9e] text-[0.7rem] whitespace-nowrap hover:underline" />
-                </Fragment>
+            {text ? (
+                url.startsWith("https://") ? (
+                    <a href={url} target="_blank" rel="noopener noreferrer" className={className}>
+                        {text}
+                    </a>
+                ) : (
+                    <span className={className}>{text}</span>
+                )
             ) : null}
+            {text && privacyEnabled ? <Separator orientation="vertical" className="h-4" /> : null}
+            {privacyEnabled ? <PrivacyPolicyLink className={className} /> : null}
         </div>
     );
 };

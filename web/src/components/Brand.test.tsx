@@ -16,6 +16,40 @@ vi.stubGlobal(
     vi.fn((str) => str),
 );
 
+beforeEach(() => {
+    document.body.dataset.brandingcustom = "false";
+    document.body.dataset.brandingtext = "";
+    document.body.dataset.brandingurl = "";
+    document.body.dataset.privacypolicyurl = "";
+});
+
+it.each(["https://abckx.com.br", "", "javascript:alert(1)"])("renders runtime text safely with URL %s", (url) => {
+    document.body.dataset.brandingcustom = "true";
+    document.body.dataset.brandingtext = "<img src=x onerror=alert(1)>";
+    document.body.dataset.brandingurl = url;
+    const { container } = render(<Brand />);
+    expect(screen.getByText("<img src=x onerror=alert(1)>")).toBeInTheDocument();
+    expect(container.querySelector("img")).toBeNull();
+    if (url.startsWith("https://")) {
+        expect(screen.getByRole("link")).toHaveAttribute("href", url);
+    } else {
+        expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    }
+});
+
+it.each(["", "https://example.com/privacy"])("hides empty branding and preserves privacy %s", (privacy) => {
+    document.body.dataset.brandingcustom = "true";
+    document.body.dataset.privacypolicyurl = privacy;
+    const { container } = render(<Brand />);
+    expect(screen.queryByText("Powered by Authelia")).not.toBeInTheDocument();
+    expect(screen.queryByRole("separator")).not.toBeInTheDocument();
+    if (privacy) {
+        expect(screen.getByRole("link")).toHaveAttribute("href", privacy);
+    } else {
+        expect(container).toBeEmptyDOMElement();
+    }
+});
+
 it("renders without crashing", () => {
     render(<Brand />);
 });

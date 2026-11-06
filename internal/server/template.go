@@ -216,6 +216,7 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 // NewTemplatedFileOptions returns a new *TemplatedFileOptions.
 func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileOptions) {
 	opts = &TemplatedFileOptions{
+		Branding:                config.Branding,
 		AssetPath:               config.Server.AssetPath,
 		DuoSelfEnrollment:       strFalse,
 		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
@@ -263,6 +264,7 @@ func totpAppStoreLink(store schema.TOTPAppsStore) string {
 
 // TemplatedFileOptions is a struct which is used for many templated files.
 type TemplatedFileOptions struct {
+	Branding               schema.Branding
 	AssetPath              string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
@@ -296,6 +298,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 	}
 
 	return TemplatedFileCommonData{
+		Branding: options.Branding,
 		Base:     base,
 		BaseURL:  baseURL,
 		Domain:   domain,
@@ -320,6 +323,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 
 func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, rememberMe string) TemplatedFileCommonData {
 	return TemplatedFileCommonData{
+		Branding:               options.Branding,
 		Base:                   base,
 		BaseURL:                baseURL,
 		Domain:                 domain,
@@ -362,6 +366,7 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce st
 
 // TemplatedFileCommonData is a struct which is used for many templated files.
 type TemplatedFileCommonData struct {
+	Branding               schema.Branding
 	Base                   string
 	BaseURL                string
 	Domain                 string

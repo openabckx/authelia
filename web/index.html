@@ -18,6 +18,9 @@ SPDX-License-Identifier: Apache-2.0
     </head>
 
     <body
+        data-brandingcustom="{{ if ne .Branding.Text nil }}true{{ else }}false{{ end }}"
+        data-brandingtext="{{ if ne .Branding.Text nil }}{{ .Branding.Text | html }}{{ end }}"
+        data-brandingurl="{{ .Branding.URL | html }}"
         data-basepath="%VITE_BASEPATH%"
         data-duoselfenrollment="%VITE_DUO_SELF_ENROLLMENT%"
         data-logooverride="%VITE_LOGO_OVERRIDE%"
