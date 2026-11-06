@@ -1,0 +1,26 @@
+# This replaces the root packaging-only ignore for abckx/Dockerfile.
+**
+!go.mod
+!go.sum
+!cmd/**
+!internal/**
+!api/**
+!web/**
+!LICENSE
+!NOTICE
+!entrypoint.sh
+!healthcheck.sh
+!.healthcheck.env
+!abckx/assets/**
+**/node_modules
+**/.env
+**/.env.*
+**/coverage
+**/.vitest
+**/.vite*
+**/__pycache__
+# Never embed local build output or coverage in the production binary.
+internal/server/public_html/**
+!internal/server/public_html/index.html
+!internal/server/public_html/index.html.license
+!internal/server/public_html/api/**

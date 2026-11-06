@@ -1,0 +1,102 @@
+"""Exercise the actual source-built runtime without external services or secrets."""
+import argparse
+import os
+import pathlib
+import secrets
+import socket
+import subprocess
+import tempfile
+import time
+import urllib.error
+import urllib.request
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    target = parser.add_mutually_exclusive_group(required=True)
+    target.add_argument("--image")
+    target.add_argument("--binary")
+    args = parser.parse_args()
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        port = listener.getsockname()[1]
+    with tempfile.TemporaryDirectory(prefix="authelia-smoke-") as directory:
+        root = pathlib.Path(directory)
+        root.chmod(0o755)
+        data = root / "data"
+        data.mkdir(mode=0o777)
+        data.chmod(0o777)  # Disposable test volume, writable by the image's UID 1000.
+        config_root = "/smoke" if args.image else directory
+        (root / "users.yml").write_text("users: {}\n")
+        (root / "configuration.yml").write_text(f"""
+server:
+  address: 'tcp://{'0.0.0.0:9091' if args.image else f'127.0.0.1:{port}'}'
+log:
+  level: info
+identity_validation:
+  reset_password:
+    jwt_secret: '{secrets.token_hex(32)}'
+authentication_backend:
+  file:
+    path: '{config_root}/users.yml'
+access_control:
+  default_policy: deny
+session:
+  secret: '{secrets.token_hex(32)}'
+  cookies:
+    - domain: example.com
+      authelia_url: https://login.example.com
+storage:
+  encryption_key: '{secrets.token_hex(32)}'
+  local:
+    path: '{config_root}/data/db.sqlite3'
+notifier:
+  filesystem:
+    filename: '{config_root}/data/notifications.txt'
+""")
+        branding = {"AUTHELIA_BRANDING_TEXT": "Fork CI & branding",
+                    "AUTHELIA_BRANDING_URL": "https://example.com/branding"}
+        name = "authelia-smoke-" + secrets.token_hex(6)
+        if args.image:
+            uid = subprocess.check_output(["docker", "run", "--rm", args.image, "id", "-u"], text=True).strip()
+            assert uid != "0", "image runs as root"
+            command = ["docker", "run", "--rm", "--name", name, "-p", f"127.0.0.1:{port}:9091",
+                       "-v", f"{directory}:/smoke:ro", "-v", f"{data}:/smoke/data:rw"]
+            for key, value in branding.items():
+                command.extend(["-e", f"{key}={value}"])
+            command += [args.image, "--config", "/smoke/configuration.yml"]
+            version_command = ["docker", "run", "--rm", args.image, "authelia", "--version"]
+        else:
+            command = [args.binary, "--config", str(root / "configuration.yml")]
+            version_command = [args.binary, "--version"]
+        version = subprocess.check_output(version_command, text=True).strip()
+        assert os.environ.get("EXPECTED_VERSION", "4.39.28-abckx-dev") in version, version
+        print(version, flush=True)
+        with (root / "runtime.log").open("w+") as log:
+            process = subprocess.Popen(command, env={**os.environ, **branding}, stdout=log, stderr=log)
+            try:
+                deadline = time.monotonic() + 90
+                while True:
+                    try:
+                        with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=2) as response:
+                            html = response.read().decode()
+                        break
+                    except (urllib.error.URLError, TimeoutError):
+                        if process.poll() is not None or time.monotonic() > deadline:
+                            raise RuntimeError("Runtime did not serve login HTML; inspect the local smoke log")
+                        time.sleep(0.5)
+                for expected in ('data-brandingtext="Fork CI &amp; branding"',
+                                 'data-brandingurl="https://example.com/branding"'):
+                    assert expected in html, f"missing {expected}"
+                    print(expected, flush=True)
+                assert 'src="./static/' in html or 'src="/static/' in html, "missing compiled portal assets"
+                print("PASS: source-built runtime serves escaped branding and compiled portal assets", flush=True)
+            finally:
+                if args.image:
+                    subprocess.run(["docker", "stop", name], check=False, stdout=subprocess.DEVNULL)
+                process.terminate()
+                process.wait(timeout=15)
+
+
+if __name__ == "__main__":
+    main()

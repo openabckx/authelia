@@ -2,6 +2,24 @@
 
 ## [nao lancado]
 
+### Fork CI and source-built image (#3)
+
+- Build the portal and Go binary from the fork source with upstream build stages
+  and hardening flags. Keep the pinned upstream runtime base and asset overlay.
+- Run as UID/GID 1000 by default. Bind-mounted storage must be writable by that
+  identity; startup does not change host ownership.
+- Derive the GHCR owner from the repository owner. Pin workflow actions by SHA.
+  Build and smoke-test PR images without publication. Publish the tested image
+  only for `abckx` pushes and `abckx-v*` tags, with the build version in the binary.
+- Add fork PR typecheck, complete portal tests, Go branding-package tests and
+  source builds. Add build-contract regression tests and a real-runtime HTML
+  smoke with temporary local configuration.
+- Guard upstream-only CodeQL, contributors, commentary, labels and scorecard
+  jobs. Keep both SLSA files unchanged per the PO scope decision. No core changes.
+- Tag, release and shared-dev validation remain resident-owned. Image smoke is
+  configured in Actions because the local workstation has no Docker daemon.
+
+
 ### Runtime footer branding (#1)
 
 - Add `branding.text` / `AUTHELIA_BRANDING_TEXT` and `branding.url` /
