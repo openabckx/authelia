@@ -4,6 +4,7 @@ import os
 import pathlib
 import re
 import secrets
+import shutil
 import socket
 import subprocess
 import tempfile
@@ -23,7 +24,7 @@ def wait_for_login(url, process):
             time.sleep(0.5)
 
 
-def main():
+def main(background_mode="default"):
     parser = argparse.ArgumentParser()
     target = parser.add_mutually_exclusive_group(required=True)
     target.add_argument("--image")
@@ -35,6 +36,13 @@ def main():
     with tempfile.TemporaryDirectory(prefix="authelia-smoke-") as directory:
         root = pathlib.Path(directory)
         root.chmod(0o755)
+        assets = pathlib.Path(__file__).with_name("assets").resolve()
+        mounted_assets = root / "assets"
+        shutil.copytree(assets, mounted_assets)
+        if background_mode == "override":
+            shutil.copyfile(assets / "logo.png", mounted_assets / "background.png")
+        elif background_mode == "missing":
+            (mounted_assets / "background.png").unlink()
         data = root / "data"
         data.mkdir(mode=0o777)
         data.chmod(0o777)  # Disposable test volume, writable by the image's UID 1000.
@@ -74,15 +82,20 @@ notifier:
 """)
         branding = {"AUTHELIA_BRANDING_TEXT": "Fork CI & branding",
                     "AUTHELIA_BRANDING_URL": "https://example.com/branding",
-                    "AUTHELIA_BRANDING_PRIMARY_COLOR": "#e91e63"}
+                    "AUTHELIA_BRANDING_PRIMARY_COLOR": "#e91e63",
+                    "AUTHELIA_BRANDING_BACKGROUND_IMAGE": str(background_mode != "disabled").lower(),
+                    "AUTHELIA_BRANDING_BACKGROUND_OPACITY": "0.35",
+                    "AUTHELIA_BRANDING_BACKGROUND_BLUR": "4"}
         if args.binary:
-            branding["AUTHELIA_SERVER_ASSET_PATH"] = str(pathlib.Path(__file__).with_name("assets").resolve())
+            branding["AUTHELIA_SERVER_ASSET_PATH"] = str(mounted_assets)
         name = "authelia-smoke-" + secrets.token_hex(6)
         if args.image:
             uid = subprocess.check_output(["docker", "run", "--rm", args.image, "id", "-u"], text=True).strip()
             assert uid != "0", "image runs as root"
             command = ["docker", "run", "--name", name, "-p", f"127.0.0.1:{port}:9091",
                        "-v", f"{directory}:/smoke:ro", "-v", f"{data}:/smoke/data:rw"]
+            if background_mode != "default":
+                command.extend(["-v", f"{mounted_assets}:/abckx/assets:ro"])
             for key, value in branding.items():
                 command.extend(["-e", f"{key}={value}"])
             command += [args.image, "--config", "/smoke/configuration.yml"]
@@ -118,9 +131,13 @@ notifier:
                     with urllib.request.urlopen(f"http://127.0.0.1:{port}{route}", timeout=5) as response:
                         assert response.read() == (assets / asset_name).read_bytes(), f"incorrect overlay: {asset_name}"
                     print(f"PASS: runtime serves official {asset_name} bytes", flush=True)
+                if background_mode not in ("missing", "disabled"):
+                    with urllib.request.urlopen(f"http://127.0.0.1:{port}/static/media/background.png", timeout=5) as response:
+                        assert response.read() == (mounted_assets / "background.png").read_bytes()
+                    print(f"PASS: {background_mode} background bytes", flush=True)
                 subprocess.run(["node", str(pathlib.Path(__file__).with_name("browser-smoke.mjs")),
                                 f"http://127.0.0.1:{port}/"], check=True, timeout=90,
-                               env={**os.environ, "SMOKE_PASSWORD": password})
+                               env={**os.environ, "SMOKE_PASSWORD": password, "BACKGROUND_MODE": background_mode})
             finally:
                 if args.image:
                     subprocess.run(["docker", "rm", "--force", name], check=False, stdout=subprocess.DEVNULL)
@@ -129,4 +146,5 @@ notifier:
 
 
 if __name__ == "__main__":
-    main()
+    for mode in ("default", "override", "missing", "disabled"):
+        main(mode)

@@ -4,6 +4,15 @@ The image copies this directory to `/abckx/assets/` and sets
 `AUTHELIA_SERVER_ASSET_PATH=/abckx/assets/`. The existing upstream overlay serves
 `logo.png` and `favicon.ico`; no core or theme change is required.
 
+## Background wallpaper (#16)
+
+`background.png` is original generated purple geometric artwork, not an official
+company logo or a downloaded image. It is a 1280×720 RGB PNG, SHA-256
+`b27f9400c20bfbbba4ef219e600a87118bf7c6b79450f5daa7108e7250a70b65`.
+The runtime consumer is opt-in `branding.background_image`; see `../README.md`
+for file mounts, validated opacity/blur, missing-file behavior and rollback.
+The existing image COPY includes it. No external resource is loaded.
+
 ## Official sources
 
 Downloaded from the iAvançada website for issue #6:
