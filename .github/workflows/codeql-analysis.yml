@@ -32,6 +32,7 @@ permissions:
 
 jobs:
   analyze:
+    if: github.repository == 'authelia/authelia'
     name: 'Analyze'
     runs-on: 'ubuntu-latest'
     permissions:
