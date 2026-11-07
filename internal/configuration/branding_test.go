@@ -12,6 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestBrandingPrimaryColorEnvironment(t *testing.T) {
+	t.Setenv("AUTHELIA_BRANDING_PRIMARY_COLOR", "#e91e63")
+	_, config, err := Load(schema.NewStructValidator(), NewEnvironmentSource(DefaultEnvPrefix, DefaultEnvDelimiter))
+	require.NoError(t, err)
+	require.Equal(t, "#e91e63", config.Branding.PrimaryColor)
+}
+
 func TestBrandingEnvironment(t *testing.T) {
 	for _, text := range []string{"Desenvolvido por abckx", ""} {
 		t.Run(text, func(t *testing.T) {

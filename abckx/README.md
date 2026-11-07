@@ -19,7 +19,8 @@ python3 -m unittest discover -s abckx -v
 
 The smoke starts the actual container with temporary SQLite/notifier storage,
 checks its non-root UID and version, and verifies escaped branding attributes
-and compiled portal assets in the login HTML. It does not authenticate a user.
+and compiled portal assets in the login HTML. It authenticates only a temporary,
+randomly generated fixture user to check the Settings app bar.
 The same probe accepts `--binary /path/to/authelia` for local source builds.
 Set `EXPECTED_VERSION` when testing a non-default `VERSION` build argument.
 
@@ -27,6 +28,29 @@ The image defaults to UID/GID `1000:1000`. Make bind-mounted configuration
 readable and storage/notifier directories writable by that identity. The image
 does not repair host volume ownership at startup. A deployment can set its own
 non-root UID/GID with the container runtime's `user` option.
+
+## Portal accent (#15)
+
+Set a quoted opaque six-digit hex color in Compose, then restart:
+
+```yaml
+environment:
+  AUTHELIA_BRANDING_PRIMARY_COLOR: '#e91e63'
+```
+
+The YAML equivalent is `branding.primary_color: '#e91e63'`. Short hex, alpha,
+color names and CSS expressions are rejected at startup. Unset or empty preserves
+upstream colors, including grey. The runtime nonce-authorized stylesheet changes
+buttons, links, focus rings and the Settings app bar in light/dark/grey/oled.
+White or near-black foreground is selected for at least WCAG AA 4.5:1 contrast
+on the accent. Arbitrary accent text against page backgrounds still needs an
+operator accessibility check; not every color is readable on every background.
+No frontend rebuild is needed after installing an image with this feature.
+Rollback: remove the variable/YAML value and restart; duration NOT MEASURED.
+
+The existing image smoke now authenticates a disposable generated test user and
+checks computed accent colors at 390×844 across all four themes, without relaxing
+CSP or mocking API responses. Docker execution remains in image CI.
 
 ## Notification branding (#14)
 

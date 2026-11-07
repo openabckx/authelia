@@ -325,6 +325,7 @@ var Keys = []string{
 	"password_policy.standard.require_uppercase",
 	"password_policy.zxcvbn.enabled",
 	"password_policy.zxcvbn.min_score",
+	"branding.primary_color",
 	"branding.text",
 	"branding.url",
 	"privacy_policy.enabled",

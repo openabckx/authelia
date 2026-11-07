@@ -7,6 +7,7 @@ package server
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"os"
 	"path"
 	"path/filepath"
@@ -362,6 +363,17 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce st
 		OpenIDConnect:  options.EndpointsOpenIDConnect,
 		EndpointsAuthz: options.EndpointsAuthz,
 	}
+}
+
+// BrandingStyle is emitted as a complete element at runtime so Vite does not
+// parse the Go template expression as build-time inline CSS. PrimaryStyle only
+// emits validated hex colors; the request nonce is independently HTML-escaped.
+func (data TemplatedFileCommonData) BrandingStyle() string {
+	css := data.Branding.PrimaryStyle()
+	if css == "" {
+		return ""
+	}
+	return fmt.Sprintf(`<style nonce="%s" id="branding-primary">%s</style>`, html.EscapeString(data.CSPNonce), css)
 }
 
 // TemplatedFileCommonData is a struct which is used for many templated files.

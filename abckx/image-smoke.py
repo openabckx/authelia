@@ -40,11 +40,12 @@ def main():
         data.chmod(0o777)  # Disposable test volume, writable by the image's UID 1000.
         config_root = "/smoke" if args.image else directory
         runtime = ["docker", "run", "--rm", args.image, "authelia"] if args.image else [args.binary]
-        generated = subprocess.check_output(runtime + ["crypto", "hash", "generate", "argon2", "--random"], text=True)
+        password = secrets.token_urlsafe(24)
+        generated = subprocess.check_output(runtime + ["crypto", "hash", "generate", "argon2", "--password", password], text=True)
         digest = next(line.removeprefix("Digest: ").strip() for line in generated.splitlines()
                       if line.startswith("Digest: "))
         (root / "users.yml").write_text(
-            f"users:\n  smoke:\n    disabled: true\n    displayname: Smoke\n    password: '{digest}'\n")
+            f"users:\n  smoke:\n    disabled: false\n    displayname: Smoke\n    password: '{digest}'\n")
         (root / "configuration.yml").write_text(f"""
 server:
   address: 'tcp://{'0.0.0.0:9091' if args.image else f'127.0.0.1:{port}'}'
@@ -72,7 +73,8 @@ notifier:
     filename: '{config_root}/data/notifications.txt'
 """)
         branding = {"AUTHELIA_BRANDING_TEXT": "Fork CI & branding",
-                    "AUTHELIA_BRANDING_URL": "https://example.com/branding"}
+                    "AUTHELIA_BRANDING_URL": "https://example.com/branding",
+                    "AUTHELIA_BRANDING_PRIMARY_COLOR": "#e91e63"}
         if args.binary:
             branding["AUTHELIA_SERVER_ASSET_PATH"] = str(pathlib.Path(__file__).with_name("assets").resolve())
         name = "authelia-smoke-" + secrets.token_hex(6)
@@ -117,7 +119,8 @@ notifier:
                         assert response.read() == (assets / asset_name).read_bytes(), f"incorrect overlay: {asset_name}"
                     print(f"PASS: runtime serves official {asset_name} bytes", flush=True)
                 subprocess.run(["node", str(pathlib.Path(__file__).with_name("browser-smoke.mjs")),
-                                f"http://127.0.0.1:{port}/"], check=True, timeout=60)
+                                f"http://127.0.0.1:{port}/"], check=True, timeout=90,
+                               env={**os.environ, "SMOKE_PASSWORD": password})
             finally:
                 if args.image:
                     subprocess.run(["docker", "rm", "--force", name], check=False, stdout=subprocess.DEVNULL)
