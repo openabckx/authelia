@@ -80,6 +80,10 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidatePrivacyPolicy(&config.PrivacyPolicy, validator)
 
+	if !config.Branding.ValidPrimaryColor() {
+		validator.Push(fmt.Errorf("branding: option 'primary_color' must be a six-digit hex color (#RRGGBB)"))
+	}
+
 	if config.Branding.URL != "" {
 		u, parseErr := url.Parse(config.Branding.URL)
 		if parseErr != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil {

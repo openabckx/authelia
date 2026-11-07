@@ -2,6 +2,18 @@
 
 ## [unreleased]
 
+### Runtime portal accent (#15)
+
+- Set `AUTHELIA_BRANDING_PRIMARY_COLOR` / `branding.primary_color` to a quoted
+  `#RRGGBB` value. Invalid values refuse startup; empty/unset keeps upstream themes.
+- One nonce-authorized runtime style sets primary, focus ring and automatic AA
+  foreground for buttons/links/Settings in light/dark/grey/oled. No core behavior
+  or dependencies change. Operators still check accent-text/background contrast.
+- Rebuild the image once to install the feature; later color changes need only a
+  restart. Rollback: unset the variable/YAML value and restart (NOT MEASURED).
+- Image Playwright smoke verifies computed colors and real Settings login at
+  390×844 with unchanged CSP and a clean browser console.
+
 ### Branded security notifications (#14)
 
 - Ship six PT-BR notification overrides with the upstream table/Outlook layout,
