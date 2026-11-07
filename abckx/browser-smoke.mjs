@@ -36,6 +36,9 @@ try {
         throw error;
     }
     assert.equal(await page.locator('input[type="password"]').isVisible(), true);
+    const logo = page.locator('img[src="./static/media/logo.png"]');
+    assert.equal(await logo.isVisible(), true, "official logo is visible on login");
+    assert.deepEqual(await logo.evaluate(image => [image.naturalWidth, image.naturalHeight]), [180, 180]);
     for (const script of await page.locator("script[src]").evaluateAll(nodes => nodes.map(node => node.src))) {
         const bundle = await page.request.get(new URL(new URL(script).pathname, backend).href, { headers });
         assert.equal(bundle.ok(), true);
