@@ -28,6 +28,30 @@ readable and storage/notifier directories writable by that identity. The image
 does not repair host volume ownership at startup. A deployment can set its own
 non-root UID/GID with the container runtime's `user` option.
 
+## Notification branding (#14)
+
+The image ships `abckx/templates/` through `AUTHELIA_NOTIFIER_TEMPLATE_PATH`.
+These six operator-owned overrides retain upstream table layouts, inline styles,
+Outlook markup and security fields. Keep them current when upstream changes
+notification data. Static copy is PT-BR; runtime titles, subjects, event fragments,
+detail keys and button labels keep the language supplied by core.
+
+- `ABCKX_EMAIL_LOGO_URL`: absolute HTTPS image URL, normally the login host's
+  `/static/media/logo.png`. Empty/unset means no image, only the iAvançada header.
+- `ABCKX_EMAIL_ENV_BANNER`: environment text, e.g. `srv-DEV-04`. Empty/unset means
+  no band. Nonempty values appear above the HTML header and on the first TXT line.
+- `AUTHELIA_BRANDING_TEXT` / `AUTHELIA_BRANDING_URL`: existing footer controls.
+  Unset text uses the iAvançada footer; explicitly empty text hides the footer.
+- Override `AUTHELIA_NOTIFIER_TEMPLATE_PATH` with another complete template
+  directory to replace the overlay. Restore the previous image digest to roll back.
+  Already sent emails cannot be recalled. Rollback duration: NOT MEASURED.
+
+Templates are UTF-8 with CRLF, including on Linux. Run `go test ./abckx` from
+repo root. Set `ABCKX_EMAIL_PREVIEW_DIR` to an absolute output directory to render
+three safe sample HTML previews through the real provider. The committed
+`previews/` files use example.com links and a sample code, never real credentials.
+Mailbox-client rendering remains tester-owned after image deployment.
+
 ## Publication and rollback
 
 PRs against `abckx` build and smoke-test without registry login or publication.

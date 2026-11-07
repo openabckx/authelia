@@ -12,6 +12,7 @@
 !healthcheck.sh
 !.healthcheck.env
 !abckx/assets/**
+!abckx/templates/**
 **/node_modules
 **/.env
 **/.env.*

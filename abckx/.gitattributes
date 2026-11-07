@@ -1,0 +1,3 @@
+# Notification overrides must remain CRLF on every checkout.
+templates/*.html text eol=crlf
+templates/*.txt text eol=crlf

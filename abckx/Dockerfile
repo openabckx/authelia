@@ -28,11 +28,13 @@ FROM authelia/base:latest@sha256:375dd7dc21deef3f903da085f1ee22894c88f41fe5ca6b7
 WORKDIR /app
 ENV PATH="/app:${PATH}" \
     X_AUTHELIA_CONFIG="/config/configuration.yml" \
-    AUTHELIA_SERVER_ASSET_PATH="/abckx/assets/"
+    AUTHELIA_SERVER_ASSET_PATH="/abckx/assets/" \
+    AUTHELIA_NOTIFIER_TEMPLATE_PATH="/abckx/templates/"
 COPY --from=backend /app/authelia ./
 COPY LICENSE entrypoint.sh healthcheck.sh ./
 COPY --chmod=666 .healthcheck.env ./
 COPY abckx/assets/ /abckx/assets/
+COPY abckx/templates/ /abckx/templates/
 RUN mkdir -p /config && chown 1000:1000 /config
 USER 1000:1000
 EXPOSE 9091

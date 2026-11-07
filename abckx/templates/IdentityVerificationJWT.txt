@@ -1,0 +1,24 @@
+{{ with env "ABCKX_EMAIL_ENV_BANNER" }}{{ . }}
+{{ end }}iAvançada
+
+Olá {{ .DisplayName }},
+
+Não compartilhe esta notificação nem seu conteúdo com ninguém.
+
+Um link de uso único foi gerado para concluir uma ação solicitada relacionada à segurança da sua conta em {{ .Domain }}.
+
+Se você fez esta solicitação, clique no link de validação ou copie e cole o endereço no seu navegador:
+
+{{ .LinkURL }}
+
+Se você NÃO iniciou esta solicitação, suas credenciais podem ter sido comprometidas. Você deve:
+
+1. Revogar usando o endereço abaixo
+2. Redefinir sua senha ou outras credenciais de acesso
+3. Entrar em contato com um administrador
+
+Para revogar: {{ .RevocationLinkURL }}
+
+Esta notificação é destinada a {{ .DisplayName }} e foi gerada por uma ação de {{ .RemoteIP }}. Se você não reconhece esta ação ou está preocupado com a segurança da sua conta, siga as instruções desta notificação.
+
+{{ $brand := branding }}{{ if ne $brand.Text nil }}{{ if $brand.Visible }}{{ if $brand.URL }}{{ $brand.Text }} {{ $brand.URL }}{{ else }}{{ $brand.Text }}{{ end }}{{ end }}{{ else }}Desenvolvido por iAvançada https://iavancada.com.br{{ end }}
