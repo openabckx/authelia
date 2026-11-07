@@ -1,0 +1,16 @@
+{{ with env "ABCKX_EMAIL_ENV_BANNER" }}{{ . }}
+{{ end }}iAvançada
+
+{{ .Title }}
+
+Olá {{ .DisplayName }},
+
+Esta notificação informa que {{ .BodyPrefix }} {{ .BodyEvent }} {{ .BodySuffix }}
+
+Detalhes do evento:
+{{- $keys := sortAlpha (keys .Details) }}{{- range $key := $keys }}
+{{ $key }}: {{ index $.Details $key }}
+{{ end }}
+Esta notificação é destinada a {{ .DisplayName }} e foi gerada por uma ação de {{ .RemoteIP }}. Se você não reconhece esta ação ou está preocupado com a segurança da sua conta, altere sua senha e entre em contato com um administrador.
+
+{{ $brand := branding }}{{ if ne $brand.Text nil }}{{ if $brand.Visible }}{{ if $brand.URL }}{{ $brand.Text }} {{ $brand.URL }}{{ else }}{{ $brand.Text }}{{ end }}{{ end }}{{ else }}Desenvolvido por iAvançada https://iavancada.com.br{{ end }}

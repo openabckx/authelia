@@ -2,6 +2,20 @@
 
 ## [unreleased]
 
+### Branded security notifications (#14)
+
+- Ship six PT-BR notification overrides with the upstream table/Outlook layout,
+  security warnings, revocation links and runtime footer controls. No core change.
+- The image defaults `AUTHELIA_NOTIFIER_TEMPLATE_PATH` to `/abckx/templates/`.
+  Rebuild the image. Operators can override that path for their own templates.
+- Set `ABCKX_EMAIL_LOGO_URL` to an absolute HTTPS logo URL. Unset/empty shows a
+  text header only. Set `ABCKX_EMAIL_ENV_BANNER` for a visible environment band
+  and first plain-text line; unset/empty omits it. Neither has a hardcoded host.
+- Runtime titles/subjects, event fragments and detail keys remain in the core's
+  language. Static prose is Brazilian Portuguese. Sent mail cannot be recalled.
+- Rollback: restore the previous image digest, or use an upstream/custom template
+  directory. Mail-client compatibility and rollback duration: NOT MEASURED.
+
 ### Official portal logo and favicon (#6)
 
 - Ship the official iAvançada PNG and multi-resolution favicon through the

@@ -45,7 +45,7 @@ jobs:
           pnpm test
       # Run before Vite replaces the server's tracked test placeholders.
       - name: Test the fork branding Go packages
-        run: go test -timeout 600s ./internal/configuration/... ./internal/server/... ./internal/templates/...
+        run: go test -timeout 600s ./abckx ./internal/configuration/... ./internal/server/... ./internal/templates/...
       - name: Build the frontend and backend
         working-directory: authelia/web
         run: |
