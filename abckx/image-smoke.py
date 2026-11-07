@@ -109,6 +109,8 @@ notifier:
                     print(expected, flush=True)
                 assert 'src="./static/' in html or 'src="/static/' in html, "missing compiled portal assets"
                 print("PASS: source-built runtime serves escaped branding and compiled portal assets", flush=True)
+                subprocess.run(["node", str(pathlib.Path(__file__).with_name("browser-smoke.mjs")),
+                                f"http://127.0.0.1:{port}/"], check=True, timeout=60)
             finally:
                 if args.image:
                     subprocess.run(["docker", "rm", "--force", name], check=False, stdout=subprocess.DEVNULL)

@@ -53,7 +53,15 @@ jobs:
             VERSION=${{ steps.version.outputs.version }}
             REVISION=${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Verify non-root, version and branding HTML
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '26.12.1'
+      - name: Install locked headless browser smoke dependencies
+        working-directory: abckx
+        run: |
+          npm ci --ignore-scripts
+          npx --no-install playwright install --with-deps chromium
+      - name: Verify non-root, version, branding and rendered login
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: python3 abckx/image-smoke.py --image authelia-smoke:local
