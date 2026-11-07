@@ -6,12 +6,12 @@ The image copies this directory to `/abckx/assets/` and sets
 
 ## Background wallpaper (#16)
 
-`background.png` is original generated purple geometric artwork, not an official
-company logo or a downloaded image. It is a 1280×720 RGB PNG, SHA-256
-`b27f9400c20bfbbba4ef219e600a87118bf7c6b79450f5daa7108e7250a70b65`.
-The runtime consumer is opt-in `branding.background_image`; see `../README.md`
-for file mounts, validated opacity/blur, missing-file behavior and rollback.
-The existing image COPY includes it. No external resource is loaded.
+No wallpaper is shipped. Only official brand files belong in this directory.
+Operators mount their company's official `background.png` here at runtime.
+The opt-in `branding.background_image` consumer uses that mounted file; if it
+is absent, the portal stays plain. See `../README.md` for controls and rollback.
+The neutral PNG in `../testdata/` is smoke-test input only, not a brand asset and
+not copied into the runtime image. No external resource is loaded.
 
 ## Official sources
 

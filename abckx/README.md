@@ -54,8 +54,9 @@ CSP or mocking API responses. Docker execution remains in image CI.
 
 ## Local portal background (#16)
 
-The image ships an original purple geometric `background.png` (1280×720) in
-`/abckx/assets/`. It is opt-in; unset/false keeps the upstream plain background.
+The image ships no wallpaper. Mount your company's official `background.png`
+into `/abckx/assets/` and enable the flag below. Unset/false or an absent file
+keeps the upstream plain background. No generated brand artwork is shipped.
 The official company logo remains on the login card.
 
 ```yaml
@@ -67,8 +68,8 @@ volumes:
   - ./company-background.png:/abckx/assets/background.png:ro
 ```
 
-Omit the volume to use the baked-in wallpaper. Use a readable PNG file, never a
-remote URL. The mount replaces one file, so the official logo/favicon remain.
+Use a readable official company PNG file, never a remote URL. Without the mount,
+the portal stays plain. The mount adds one file; official logo/favicon remain.
 A custom `AUTHELIA_SERVER_ASSET_PATH` directory must contain `background.png`.
 If that file is absent at startup, the portal stays plain without an image request.
 Restart after changing the mount or settings. Missing files do not block login.
@@ -81,7 +82,9 @@ The fixed same-origin image URL uses the existing base URL and asset middleware.
 The existing nonce-authorized style also gives login-stage cards an opaque theme
 background; image opacity/blur never apply to card content. No CSP change.
 
-The smoke runs default, mounted override, missing and disabled cases. Chromium
+The smoke runs the image's plain default, mounted neutral fixture, mounted
+override, missing and disabled cases. The neutral test PNG lives in
+`abckx/testdata/`, which is not copied into the runtime image. Chromium
 checks loaded dimensions, computed image/blur/opacity and opaque cards in all
 four themes. It requires AA card text contrast in light/dark/oled; inherited grey
 measures 4.39:1 and is not repaired here. Authentication, Settings and console

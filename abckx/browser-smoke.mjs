@@ -56,7 +56,7 @@ try {
     assert.ok(csp.includes(`'nonce-${nonce}'`));
     assert.ok(!csp.includes("'unsafe-inline'"), "CSP must not be relaxed");
     assert.ok(csp.includes("default-src 'self'"), "images inherit same-origin default-src");
-    const backgroundEnabled = ["default", "override"].includes(process.env.BACKGROUND_MODE);
+    const backgroundEnabled = ["fixture", "override"].includes(process.env.BACKGROUND_MODE);
     const background = await page.evaluate(() => {
         const style = getComputedStyle(document.body, "::before");
         return { image: style.backgroundImage, opacity: style.opacity, filter: style.filter };

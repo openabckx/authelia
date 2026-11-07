@@ -4,14 +4,15 @@
 
 ### Local portal background (#16)
 
-- Rebuild to receive the bundled original purple PNG wallpaper. Enable with
+- Rebuild to receive the opt-in local background feature. No default wallpaper
+  is shipped; only official company artwork belongs in the runtime asset path.
+- Mount the company's PNG at `/abckx/assets/background.png` and enable
   `AUTHELIA_BRANDING_BACKGROUND_IMAGE=true`; unset/false preserves upstream.
-- Mount a PNG over `/abckx/assets/background.png` to use company artwork.
   Missing files keep the plain background. No remote URL or CSP relaxation.
 - `AUTHELIA_BRANDING_BACKGROUND_OPACITY` (0..1, default 0.25) and
   `AUTHELIA_BRANDING_BACKGROUND_BLUR` (0..20 px, default 0) are runtime settings.
   Invalid values refuse startup. Login-stage cards keep an opaque theme surface.
-- Image smoke exercises default/override/missing/disabled backgrounds and all
+- Image smoke exercises plain default/mounted fixture/override/missing/disabled and all
   themes. Rollback: disable the flag and restart or restore the previous digest.
   Production rendering and rollback duration: NOT MEASURED.
 

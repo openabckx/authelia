@@ -39,10 +39,10 @@ def main(background_mode="default"):
         assets = pathlib.Path(__file__).with_name("assets").resolve()
         mounted_assets = root / "assets"
         shutil.copytree(assets, mounted_assets)
+        if background_mode in ("fixture", "disabled"):
+            shutil.copyfile(assets.parent / "testdata" / "background.png", mounted_assets / "background.png")
         if background_mode == "override":
             shutil.copyfile(assets / "logo.png", mounted_assets / "background.png")
-        elif background_mode == "missing":
-            (mounted_assets / "background.png").unlink()
         data = root / "data"
         data.mkdir(mode=0o777)
         data.chmod(0o777)  # Disposable test volume, writable by the image's UID 1000.
@@ -131,7 +131,7 @@ notifier:
                     with urllib.request.urlopen(f"http://127.0.0.1:{port}{route}", timeout=5) as response:
                         assert response.read() == (assets / asset_name).read_bytes(), f"incorrect overlay: {asset_name}"
                     print(f"PASS: runtime serves official {asset_name} bytes", flush=True)
-                if background_mode not in ("missing", "disabled"):
+                if background_mode in ("fixture", "override"):
                     with urllib.request.urlopen(f"http://127.0.0.1:{port}/static/media/background.png", timeout=5) as response:
                         assert response.read() == (mounted_assets / "background.png").read_bytes()
                     print(f"PASS: {background_mode} background bytes", flush=True)
@@ -146,5 +146,5 @@ notifier:
 
 
 if __name__ == "__main__":
-    for mode in ("default", "override", "missing", "disabled"):
+    for mode in ("default", "fixture", "override", "missing", "disabled"):
         main(mode)
