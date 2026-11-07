@@ -1,5 +1,17 @@
 # abckx changelog
 
+## [unreleased]
+
+### Official portal logo and favicon (#6)
+
+- Ship the official iAvançada PNG and multi-resolution favicon through the
+  existing `abckx/assets/` overlay. Rebuild the image to receive these defaults;
+  operator-provided `AUTHELIA_SERVER_ASSET_PATH` directories still take precedence.
+- Preserve upstream portal themes and all core/authentication behavior. Custom
+  colors are excluded by the scope decision and tracked upstream in #11862/#8839.
+- Pin the official source digests in offline regression tests and document
+  source provenance and rollback in `abckx/assets/README.md`.
+
 ## [nao lancado]
 
 ### Image frontend regression (#7)
