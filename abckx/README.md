@@ -52,6 +52,47 @@ The existing image smoke now authenticates a disposable generated test user and
 checks computed accent colors at 390×844 across all four themes, without relaxing
 CSP or mocking API responses. Docker execution remains in image CI.
 
+## Local portal background (#16)
+
+The image ships no wallpaper. Mount your company's official `background.png`
+into `/abckx/assets/` and enable the flag below. Unset/false or an absent file
+keeps the upstream plain background. No generated brand artwork is shipped.
+The official company logo remains on the login card.
+
+```yaml
+environment:
+  AUTHELIA_BRANDING_BACKGROUND_IMAGE: 'true'
+  AUTHELIA_BRANDING_BACKGROUND_OPACITY: '0.25'
+  AUTHELIA_BRANDING_BACKGROUND_BLUR: '0'
+volumes:
+  - ./company-background.png:/abckx/assets/background.png:ro
+```
+
+Use a readable official company PNG file, never a remote URL. Without the mount,
+the portal stays plain. The mount adds one file; official logo/favicon remain.
+A custom `AUTHELIA_SERVER_ASSET_PATH` directory must contain `background.png`.
+If that file is absent at startup, the portal stays plain without an image request.
+Restart after changing the mount or settings. Missing files do not block login.
+
+YAML equivalents: `branding.background_image`, `branding.background_opacity`,
+`branding.background_blur`. Opacity is image visibility over the upstream theme
+(0..1 inclusive, default 0.25); blur is pixels (0..20 inclusive, default 0).
+Invalid or non-finite numbers refuse startup. Zero opacity is not an unset value.
+The fixed same-origin image URL uses the existing base URL and asset middleware.
+The existing nonce-authorized style also gives login-stage cards an opaque theme
+background; image opacity/blur never apply to card content. No CSP change.
+
+The smoke runs the image's plain default, mounted neutral fixture, mounted
+override, missing and disabled cases. The neutral test PNG lives in
+`abckx/testdata/`, which is not copied into the runtime image. Chromium
+checks loaded dimensions, computed image/blur/opacity and opaque cards in all
+four themes. It requires AA card text contrast in light/dark/oled; inherited grey
+measures 4.39:1 and is not repaired here. Authentication, Settings and console
+checks still cover every theme. Custom accent text needs the operator contrast
+check described above.
+Rollback: set `AUTHELIA_BRANDING_BACKGROUND_IMAGE: 'false'` and restart, or restore
+the previous image digest. Rollback duration and production rendering: NOT MEASURED.
+
 ## Notification branding (#14)
 
 The image ships `abckx/templates/` through `AUTHELIA_NOTIFIER_TEMPLATE_PATH`.

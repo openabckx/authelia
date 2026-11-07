@@ -250,6 +250,9 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 	if !config.DuoAPI.Disable {
 		opts.DuoSelfEnrollment = strconv.FormatBool(config.DuoAPI.EnableSelfEnrollment)
 	}
+	if info, err := os.Stat(filepath.Join(opts.AssetPath, "background.png")); opts.AssetPath == "" || err != nil || !info.Mode().IsRegular() {
+		opts.Branding.BackgroundImage = false
+	}
 
 	return opts
 }
@@ -366,10 +369,10 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce st
 }
 
 // BrandingStyle is emitted as a complete element at runtime so Vite does not
-// parse the Go template expression as build-time inline CSS. PrimaryStyle only
-// emits validated hex colors; the request nonce is independently HTML-escaped.
+// parse the Go template expression as build-time inline CSS. Branding methods
+// emit only validated values and a fixed local URL; the nonce is HTML-escaped.
 func (data TemplatedFileCommonData) BrandingStyle() string {
-	css := data.Branding.PrimaryStyle()
+	css := data.Branding.PrimaryStyle() + data.Branding.BackgroundStyle()
 	if css == "" {
 		return ""
 	}

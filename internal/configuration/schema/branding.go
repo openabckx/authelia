@@ -13,9 +13,12 @@ import (
 // Branding configures the portal accent and portal/notification footer. Nil text preserves
 // the upstream branding; an explicitly empty text hides it.
 type Branding struct {
-	Text         *string `koanf:"text" yaml:"text,omitempty" toml:"text,omitempty" json:"text,omitempty"`
-	URL          string  `koanf:"url" yaml:"url,omitempty" toml:"url,omitempty" json:"url,omitempty"`
-	PrimaryColor string  `koanf:"primary_color" yaml:"primary_color,omitempty" toml:"primary_color,omitempty" json:"primary_color,omitempty"`
+	Text              *string  `koanf:"text" yaml:"text,omitempty" toml:"text,omitempty" json:"text,omitempty"`
+	URL               string   `koanf:"url" yaml:"url,omitempty" toml:"url,omitempty" json:"url,omitempty"`
+	PrimaryColor      string   `koanf:"primary_color" yaml:"primary_color,omitempty" toml:"primary_color,omitempty" json:"primary_color,omitempty"`
+	BackgroundImage   bool     `koanf:"background_image" yaml:"background_image,omitempty" toml:"background_image,omitempty" json:"background_image,omitempty"`
+	BackgroundOpacity *float64 `koanf:"background_opacity" yaml:"background_opacity,omitempty" toml:"background_opacity,omitempty" json:"background_opacity,omitempty"`
+	BackgroundBlur    float64  `koanf:"background_blur" yaml:"background_blur,omitempty" toml:"background_blur,omitempty" json:"background_blur,omitempty"`
 }
 
 // ValidPrimaryColor permits only an unset value or an opaque six-digit hex color.

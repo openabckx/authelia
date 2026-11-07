@@ -8,6 +8,15 @@ ASSETS = pathlib.Path(__file__).resolve().parent / "assets"
 
 
 class BrandAssets(unittest.TestCase):
+    def test_wallpaper_is_test_input_only_not_a_shipped_brand_asset(self):
+        self.assertFalse((ASSETS / "background.png").exists())
+        fixture = ASSETS.parent / "testdata" / "background.png"
+        self.assertEqual((1280, 720), struct.unpack(">II", fixture.read_bytes()[16:24]))
+        dockerfile = (ASSETS.parent / "Dockerfile").read_text()
+        runtime_stage = dockerfile.split("FROM authelia/base:", 1)[1]
+        self.assertNotIn("testdata", runtime_stage)
+        self.assertIn("COPY abckx/assets/ /abckx/assets/", runtime_stage)
+
     def test_logo_is_the_official_touch_icon(self):
         logo = (ASSETS / "logo.png").read_bytes()
         self.assertEqual(b"\x89PNG\r\n\x1a\n", logo[:8])

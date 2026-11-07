@@ -4,6 +4,15 @@ The image copies this directory to `/abckx/assets/` and sets
 `AUTHELIA_SERVER_ASSET_PATH=/abckx/assets/`. The existing upstream overlay serves
 `logo.png` and `favicon.ico`; no core or theme change is required.
 
+## Background wallpaper (#16)
+
+No wallpaper is shipped. Only official brand files belong in this directory.
+Operators mount their company's official `background.png` here at runtime.
+The opt-in `branding.background_image` consumer uses that mounted file; if it
+is absent, the portal stays plain. See `../README.md` for controls and rollback.
+The neutral PNG in `../testdata/` is smoke-test input only, not a brand asset and
+not copied into the runtime image. No external resource is loaded.
+
 ## Official sources
 
 Downloaded from the iAvançada website for issue #6:

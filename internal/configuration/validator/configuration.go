@@ -83,6 +83,9 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	if !config.Branding.ValidPrimaryColor() {
 		validator.Push(fmt.Errorf("branding: option 'primary_color' must be a six-digit hex color (#RRGGBB)"))
 	}
+	if !config.Branding.ValidBackground() {
+		validator.Push(fmt.Errorf("branding: background_opacity must be in range 0..1 and background_blur in range 0..20 pixels"))
+	}
 
 	if config.Branding.URL != "" {
 		u, parseErr := url.Parse(config.Branding.URL)

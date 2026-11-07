@@ -55,6 +55,24 @@ try {
     const csp = response.headers()["content-security-policy"];
     assert.ok(csp.includes(`'nonce-${nonce}'`));
     assert.ok(!csp.includes("'unsafe-inline'"), "CSP must not be relaxed");
+    assert.ok(csp.includes("default-src 'self'"), "images inherit same-origin default-src");
+    const backgroundEnabled = ["fixture", "override"].includes(process.env.BACKGROUND_MODE);
+    const background = await page.evaluate(() => {
+        const style = getComputedStyle(document.body, "::before");
+        return { image: style.backgroundImage, opacity: style.opacity, filter: style.filter };
+    });
+    assert.equal(background.image.includes("/static/media/background.png"), backgroundEnabled);
+    if (backgroundEnabled) {
+        assert.equal(background.opacity, "0.35");
+        assert.equal(background.filter, "blur(4px)");
+        const image = await page.evaluate(async () => {
+            const image = new Image();
+            image.src = "./static/media/background.png";
+            await image.decode();
+            return [image.naturalWidth, image.naturalHeight];
+        });
+        assert.deepEqual(image, process.env.BACKGROUND_MODE === "override" ? [180, 180] : [1280, 720]);
+    }
     for (const theme of themes) {
         await page.evaluate(theme => {
             document.documentElement.dataset.theme = theme;
@@ -65,6 +83,32 @@ try {
         assert.equal(await computed("#reset-password-button", "color"), accent, theme);
         await username.focus();
         assert.equal(await computed("#username-textfield", "borderTopColor"), accent, theme);
+        if (backgroundEnabled) {
+            const contrast = await page.locator("#first-factor-stage > .mx-auto").evaluate(card => {
+                const style = getComputedStyle(card);
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d", { willReadFrequently: true });
+                const luminance = color => {
+                    context.clearRect(0, 0, 1, 1);
+                    context.fillStyle = color;
+                    context.fillRect(0, 0, 1, 1);
+                    const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+                    assertOpaque(a);
+                    return [r, g, b].map(v => v / 255).map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+                        .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+                };
+                function assertOpaque(alpha) { if (alpha !== 255) throw new Error("card/text must be opaque"); }
+                const a = luminance(style.color), b = luminance(style.backgroundColor);
+                return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+            });
+            // Upstream grey's foreground/background pair is below AA; preserve it.
+            // Acceptance requires AA in light/dark; grey is measured, not repaired here.
+            if (theme !== "grey") assert.ok(contrast >= 4.5, `${theme}: card contrast ${contrast}`);
+            console.log(`PASS: ${process.env.BACKGROUND_MODE} ${theme} opaque card contrast ${contrast.toFixed(2)}:1`);
+            if (process.env.SMOKE_SCREENSHOT_DIR && ["light", "dark"].includes(theme)) {
+                await page.screenshot({ path: `${process.env.SMOKE_SCREENSHOT_DIR}/${process.env.BACKGROUND_MODE}-${theme}.png` });
+            }
+        }
     }
     assert.ok(process.env.SMOKE_PASSWORD, "disposable runtime password required");
     await username.fill("smoke");
