@@ -7,6 +7,20 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 class ImageContract(unittest.TestCase):
+    def test_only_production_env_template_is_restored_after_env_exclusion(self):
+        patterns = (ROOT / "abckx/Dockerfile.dockerignore").read_text().splitlines()
+        exceptions = [p for p in patterns if p.startswith("!") and "/.env" in p]
+        self.assertEqual(["!web/.env.production"], exceptions)
+        self.assertGreater(patterns.index("!web/.env.production"), patterns.index("**/.env.*"))
+
+    def test_generated_bundle_is_checked_and_browser_smoke_is_mandatory(self):
+        recipe = (ROOT / "abckx/Dockerfile").read_text()
+        self.assertIn("grep -rF '%VITE_BASEPATH%'", recipe)
+        workflow = (ROOT / ".github/workflows/abckx-image.yml").read_text()
+        self.assertIn("playwright install --with-deps chromium", workflow)
+        smoke = (ROOT / "abckx/image-smoke.py").read_text()
+        self.assertIn('"browser-smoke.mjs"', smoke)
+
     def test_image_builds_both_sources_as_nonroot(self):
         recipe = (ROOT / "abckx/Dockerfile").read_text()
         self.assertIn("pnpm build", recipe)

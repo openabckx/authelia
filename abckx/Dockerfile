@@ -6,6 +6,8 @@ WORKDIR /src/web
 RUN npm install --global pnpm@12.18.0
 COPY web/ ./
 RUN pnpm install --frozen-lockfile --ignore-scripts && pnpm build
+# A missing production env leaves a literal basename and a blank portal.
+RUN if grep -rF '%VITE_BASEPATH%' ../internal/server/public_html; then exit 1; else test "$?" -eq 1; fi
 
 FROM golang:1.27.3-bookworm@sha256:d9b6a1beb9474adc2a1ce842573639b44b2a0dd49b6669f51d3821baf9ec37c9 AS backend
 WORKDIR /src

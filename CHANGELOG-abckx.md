@@ -2,6 +2,17 @@
 
 ## [nao lancado]
 
+### Image frontend regression (#7)
+
+- Include only the public `web/.env.production` template after the environment
+  exclusions. Keep local and deployment `.env` files outside the build context.
+- Reject generated portal output containing `%VITE_BASEPATH%` during image build.
+- Run pinned Playwright/Chromium against the actual image before publication.
+  Require visible username/password fields, no browser errors or Router basename
+  warnings, and no unresolved basename placeholder in served bundles.
+- Operators must rebuild the image; no runtime configuration change is required.
+  Image publication remains conditional on the complete smoke passing.
+
 ### Fork CI and source-built image (#3)
 
 - Build the portal and Go binary from the fork source with upstream build stages
