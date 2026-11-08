@@ -148,8 +148,7 @@ neo-dev reviews and merges. No automatic release, tag, image or deployment.
 
 `GITHUB_TOKEN` pushes/PRs do not trigger ordinary push/pull_request workflows.
 The explicit reusable CI call is therefore mandatory, not a reliance on PR events.
-Its current coverage is the existing fork CI described below; wider-suite coverage
-belongs to #18. An owner may need to trigger additional required PR checks under
+Its coverage is the full fork CI described below. An owner may need to trigger additional required PR checks under
 the repository's policy before merge; the automation never bypasses that policy.
 
 If upstream changes `.github/workflows/**` in either the release or the master
@@ -195,7 +194,34 @@ changed. Rollback duration: NOT MEASURED.
   does not match `abckx-v*`. The inherited invalid reusable-workflow reference
   is owned upstream and is explicitly outside this change.
 
-`abckx-ci` checks the complete portal, builds both components, and tests the Go
-configuration/server/template packages that implement the fork branding. The
-canonical wider Go suite excludes `internal/suites`; its known model test
-failures remain upstream debt, not exclusions added to the test code.
+## Required PR validation (#18)
+
+Every PR against `abckx`, push to `abckx`, and reusable sync candidate runs
+`abckx-ci`. Branding must not break authentication outside the branding packages.
+The unit commands follow upstream's
+[`cmd/authelia-scripts/cmd/unittest.go`](https://github.com/authelia/authelia/blob/master/cmd/authelia-scripts/cmd/unittest.go):
+
+```sh
+go test -coverprofile=coverage.txt -covermode=atomic -race $(go list ./... | grep -v suites)
+cd web && CI=true pnpm test
+```
+
+The Go command includes all fork packages and upstream units, with Buildkite's
+race detector and atomic coverage. Only upstream's `suites` integration corpus is
+excluded; individual failing tests are never skipped or tolerated. Run Go units
+before Vite overwrites the tracked server test placeholders. The full web suite
+includes coverage. Fork Python contracts, `tsc --noEmit`, `pnpm build`, and the Go
+binary build also run. The separate image workflow retains real browser smoke.
+
+`setup-go` caches modules/build output keyed by `go.sum`; a pinned cache action
+stores pnpm's content-addressed store keyed by OS, pnpm major and the web lockfile.
+Installation remains frozen and script-free. The job retains a 25-minute budget
+and always writes its result and **Required for merge** scope to the workflow
+summary. Neo-dev owns repository required-check settings; a summary does not
+configure branch protection. Inherited failures remain visible and fail the job.
+Live cold/warm CI duration and cache savings: NOT MEASURED.
+For local worktrees whose basename is not `authelia`, set
+`BUILDKITE_PIPELINE_SLUG` to that basename for the Go command. Upstream's
+`TestShouldExecCommandOnAutheliaRootPath` explicitly supports this override;
+CI already checks out into `authelia`, so needs no override.
+Rollback: revert the #18 workflow change; no runtime/image configuration changes.

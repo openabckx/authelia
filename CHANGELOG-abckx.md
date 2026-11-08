@@ -2,6 +2,16 @@
 
 ## [unreleased]
 
+### Full fork PR unit coverage (#18)
+
+- Run upstream's full Go unit command with atomic coverage/race detection and
+  all fork packages, not just branding packages. Retain the full web unit suite,
+  typecheck, contracts and source builds; never ignore inherited test failures.
+- Cache pnpm store alongside Go caches and report required validation scope and
+  result in the workflow summary. The existing 25-minute job budget is unchanged.
+- No image rebuild or runtime setting changes needed. Rollback: revert workflow
+  changes. Live CI cache savings/runtime and rollback duration: NOT MEASURED.
+
 ### Reviewed upstream release sync (#17)
 
 - Add daily/manual master-mirror and stable-release merge checks, with explicit
