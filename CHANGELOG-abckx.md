@@ -2,6 +2,17 @@
 
 ## [unreleased]
 
+### Image operator documentation (#25)
+
+- Add a short fork README entry point and the neo-dev-owned operations manual,
+  including Redis, file-backed secrets, UID 1000 permissions and local assets.
+- Preserve the upstream README and LICENSE/NOTICE. Document release/SHA tags,
+  current partial email localization, daily reviewed upstream sync and the
+  pending #22 patch manifest. No image rebuild or runtime change is required.
+- Correct the manual's SMTP startup-check exception, authenticator naming and
+  SQLite backup advice against current source. Deployment, real inbox delivery
+  and backup/rollback duration: NOT MEASURED. Rollback: revert these docs.
+
 ### Full fork PR unit coverage (#18)
 
 - Run upstream's full Go unit command with atomic coverage/race detection and

@@ -1,3 +1,54 @@
+# openabckx/authelia
+
+A customization-only fork of [Authelia](https://github.com/authelia/authelia), the SSO and two-factor authentication server.
+**[Operations manual](abckx/OPERATIONS.md): deployment example, customization, secrets, users, backups and production checks.**
+[Build and validation details](abckx/README.md) · [Fork changelog](CHANGELOG-abckx.md).
+
+## What differs from upstream
+
+| Area | Fork behavior / controls |
+|---|---|
+| Footer | Runtime `AUTHELIA_BRANDING_TEXT` / `AUTHELIA_BRANDING_URL`, portal and emails. Empty text hides it; unset preserves defaults. Text is used as supplied, not given another “Powered by” prefix. |
+| Logo + favicon | Official iAvançada files in `/abckx/assets/`; mount your own `logo.png` / `favicon.ico`, or set `AUTHELIA_SERVER_ASSET_PATH`. |
+| Accent | `AUTHELIA_BRANDING_PRIMARY_COLOR`: quoted `#RRGGBB`; invalid values refuse startup. |
+| Background | Mount `background.png`; enable `AUTHELIA_BRANDING_BACKGROUND_IMAGE`, with `_OPACITY` (0..1) and `_BLUR` (0..20 px). No wallpaper shipped. |
+| Email | Branded PT-BR static copy via `notifier.template_path` (`AUTHELIA_NOTIFIER_TEMPLATE_PATH`), `ABCKX_EMAIL_LOGO_URL`, `ABCKX_EMAIL_ENV_BANNER`. Core-supplied titles, subjects and events still use English; [#27](https://github.com/openabckx/authelia/issues/27) tracks full translation. |
+| Image | Built from this source, non-root UID/GID `1000:1000`, real-browser smoke before publication. Volumes must have matching permissions. |
+
+Everything else follows upstream. Use the [upstream configuration and integration docs](https://www.authelia.com/).
+No authentication/security core customization belongs here. Keep [LICENSE](LICENSE) and [NOTICE](NOTICE) (Apache-2.0).
+
+## How to use
+
+The GHCR package is public. Pin `ghcr.io/openabckx/authelia:4.39.28-5` (or an approved digest), not `latest`.
+Release tags `abckx-v<upstream>-<n>` publish `ghcr.io/openabckx/authelia:<upstream>-<n>`;
+unreleased branch builds use `abckx-<sha12>`. If package visibility changes, request registry access from the org admin,
+or build from source. From a checkout of branch `abckx` at your chosen revision:
+
+```sh
+docker build -f abckx/Dockerfile --build-arg VERSION=4.39.28-local --build-arg REVISION="$(git rev-parse HEAD)" -t authelia:local .
+```
+
+Use the [minimal Compose example](abckx/OPERATIONS.md#2-minimal-deployment) with Redis, file-backed secrets,
+branding variables and background mount. It also lists the required configuration and UID 1000 permissions;
+Compose alone is not a complete deployment. Put the portal behind an HTTPS reverse proxy.
+
+## Upgrades
+
+`master` mirrors upstream; `abckx` holds our customization. The [upstream sync workflow](.github/workflows/abckx-upstream.yml)
+is scheduled daily at 04:23 UTC (requires `abckx` as default and Actions PR permission). It validates release candidates,
+opens reviewed sync PRs, or reports manual-sync/conflict failures with `upstream-conflict` issues. See
+[the sync procedure](abckx/README.md#upstream-release-sync-17) for activation and retry details.
+The holding's **fork-standard** requires config/asset overrides first, thin hooks only, and no core fixes here.
+`abckx/PATCHES.md` is the required hook manifest; it is not present yet (tracked in
+[#22](https://github.com/openabckx/authelia/issues/22)). Until it lands, inspect the fork diff and changelog before syncing.
+Back up storage and users before upgrading; schema migrations can make rollback require a restore.
+Neo-dev reviews, releases and deploys; the tester proves the user flow in dev before production.
+
+---
+
+## Upstream README
+
 <p align="center">
   <img src="https://www.authelia.com/images/authelia-title.png" width="350" title="Authelia">
 </p>
