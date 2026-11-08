@@ -2,6 +2,17 @@
 
 ## [unreleased]
 
+### Reviewed upstream release sync (#17)
+
+- Add daily/manual master-mirror and stable-release merge checks, with explicit
+  read-only fork CI before a sync PR. No automated merge, image or deployment.
+- Workflow changes stop all pushes and create a manual-sync issue; conflicts and
+  failed CI report affected files. Retries reuse candidates/PRs/issues.
+- Activation requires neo-dev's org admin to make `abckx` default and allow
+  token-created PRs. No new secret. Image operators need no rebuild/config change.
+- Rollback: disable/revert the sync workflow. Live schedule, token permissions
+  and rollback duration: NOT MEASURED.
+
 ### Local portal background (#16)
 
 - Rebuild to receive the opt-in local background feature. No default wallpaper
