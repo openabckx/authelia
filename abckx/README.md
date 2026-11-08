@@ -202,13 +202,32 @@ The unit commands follow upstream's
 [`cmd/authelia-scripts/cmd/unittest.go`](https://github.com/authelia/authelia/blob/master/cmd/authelia-scripts/cmd/unittest.go):
 
 ```sh
-go test -coverprofile=coverage.txt -covermode=atomic -race $(go list ./... | grep -v suites)
+set -o pipefail
+packages=$(go list ./... | grep -v suites)
+set +e
+TZ=UTC go test -coverprofile=coverage.txt -covermode=atomic -race -json -count=1 $packages > go-tests.jsonl 2>&1
+status=$?
+set -e
+python3 abckx/check_go_results.py go-tests.jsonl abckx/known-upstream-failures.txt "$status"
 cd web && CI=true pnpm test
 ```
 
 The Go command includes all fork packages and upstream units, with Buildkite's
 race detector and atomic coverage. Only upstream's `suites` integration corpus is
-excluded; individual failing tests are never skipped or tolerated. Run Go units
+excluded; no individual test is skipped. JSON output and an uncached run support
+an exact failure ratchet approved in [#18](https://github.com/openabckx/authelia/issues/18#issuecomment-6715821327).
+`abckx/known-upstream-failures.txt` records each package/leaf test, reason and
+observed upstream commit. Six timezone-related subtests reproduce on clean
+upstream master `aafb20467142d57f2445f0f0ef62c2643055700d` with Go 1.27.3 and
+`TZ=UTC`; the latest stable release is v4.39.28, but that tag was not tested.
+The gate fails on any other leaf failure, package/build/race/panic failure,
+malformed/incomplete output, or a listed test that passes, skips or disappears.
+Parents fail when a child fails, but new failing siblings are not allowed.
+Remove entries when upstream fixes them; never widen the list to hide fork regressions.
+Raw JSON remains in the Actions log. A ready-to-file upstream report is in PR #26;
+neo-dev routes it, rather than patching core here. Related closed upstream
+[PR #12154](https://github.com/authelia/authelia/pull/12154) describes the hardcoded
+CheckedAt assumption. Run Go units
 before Vite overwrites the tracked server test placeholders. The full web suite
 includes coverage. Fork Python contracts, `tsc --noEmit`, `pnpm build`, and the Go
 binary build also run. The separate image workflow retains real browser smoke.
@@ -218,7 +237,8 @@ stores pnpm's content-addressed store keyed by OS, pnpm major and the web lockfi
 Installation remains frozen and script-free. The job retains a 25-minute budget
 and always writes its result and **Required for merge** scope to the workflow
 summary. Neo-dev owns repository required-check settings; a summary does not
-configure branch protection. Inherited failures remain visible and fail the job.
+configure branch protection. Inherited failures remain visible; only the exact
+approved list is tolerated, and any stale entry fails the job.
 Live cold/warm CI duration and cache savings: NOT MEASURED.
 For local worktrees whose basename is not `authelia`, set
 `BUILDKITE_PIPELINE_SLUG` to that basename for the Go command. Upstream's

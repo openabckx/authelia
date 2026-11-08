@@ -6,7 +6,9 @@
 
 - Run upstream's full Go unit command with atomic coverage/race detection and
   all fork packages, not just branding packages. Retain the full web unit suite,
-  typecheck, contracts and source builds; never ignore inherited test failures.
+  typecheck, contracts and source builds. Run in UTC and ratchet six exact known
+  upstream timezone failures against JSON results per neo-dev's #18 decision:
+  new failures and stale entries fail the job; no tests are skipped or core patched.
 - Cache pnpm store alongside Go caches and report required validation scope and
   result in the workflow summary. The existing 25-minute job budget is unchanged.
 - No image rebuild or runtime setting changes needed. Rollback: revert workflow

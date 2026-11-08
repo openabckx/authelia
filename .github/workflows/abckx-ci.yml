@@ -60,7 +60,17 @@ jobs:
           pnpm test
       # Run before Vite replaces the server's tracked test placeholders.
       - name: Test the complete upstream Go unit suite and fork packages
-        run: go test -coverprofile=coverage.txt -covermode=atomic -race $(go list ./... | grep -v suites)
+        env:
+          TZ: UTC
+        run: |
+          set -o pipefail
+          packages=$(go list ./... | grep -v suites)
+          set +e
+          go test -coverprofile=coverage.txt -covermode=atomic -race -json -count=1 $packages > "$RUNNER_TEMP/go-tests.jsonl" 2>&1
+          status=$?
+          set -e
+          cat "$RUNNER_TEMP/go-tests.jsonl"
+          python3 abckx/check_go_results.py "$RUNNER_TEMP/go-tests.jsonl" abckx/known-upstream-failures.txt "$status"
       - name: Build the frontend and backend
         working-directory: authelia/web
         run: |
@@ -79,5 +89,5 @@ jobs:
             printf 'Result: %s\n\n' "$VALIDATION_STATUS"
             printf '%s\n' '- Full upstream Go units: atomic coverage and race detector; upstream excludes internal/suites integration tests.'
             printf '%s\n' '- Full web units: CI=true pnpm test (coverage), TypeScript check, portal and Go builds.'
-            printf '%s\n' '- Fork contracts also run. No test failures are ignored. Image/browser smoke is a separate workflow.'
+            printf '%s\n' '- Fork contracts also run. Exact known upstream failures are ratcheted; any new failure or stale entry fails. Image/browser smoke is separate.'
           } >> "$GITHUB_STEP_SUMMARY"

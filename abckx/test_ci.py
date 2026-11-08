@@ -71,8 +71,11 @@ class WorkflowContract(unittest.TestCase):
 
     def test_full_upstream_unit_commands_run_before_frontend_build(self):
         workflow = (ROOT / ".github/workflows/abckx-ci.yml").read_text()
-        command = "go test -coverprofile=coverage.txt -covermode=atomic -race $(go list ./... | grep -v suites)"
+        command = "go test -coverprofile=coverage.txt -covermode=atomic -race -json -count=1 $packages"
         self.assertIn(command, workflow)
+        self.assertIn("packages=$(go list ./... | grep -v suites)", workflow)
+        self.assertIn("TZ: UTC", workflow)
+        self.assertIn('python3 abckx/check_go_results.py "$RUNNER_TEMP/go-tests.jsonl" abckx/known-upstream-failures.txt "$status"', workflow)
         self.assertLess(workflow.index(command), workflow.index("pnpm build"))
         self.assertIn("pnpm test", workflow)
         self.assertIn("CI: 'true'", workflow)
