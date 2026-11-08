@@ -130,6 +130,57 @@ Only the resident creates tags/releases and deploys. Preserve the previous
 image digest for deployment rollback. Reverting this PR restores the previous
 build workflow; it does not change an already published image or running service.
 
+## Upstream release sync (#17)
+
+`abckx-upstream` runs daily at 04:23 UTC and through **Run workflow** on `abckx`.
+**Activation prerequisite:** an org admin must make `abckx` the default branch;
+GitHub schedules and manual-dispatch discovery use the default branch. Neo-dev
+owns this setting and must allow GitHub Actions to create pull requests. Until
+then, the schedule is not active. Never install fork automation onto `master`.
+
+The workflow fetches `authelia/authelia` master and the latest stable `vX.Y.Z`
+release. It fast-forwards the pure `master` mirror, without rewriting history,
+and merges a new release into `upstream/vX.Y.Z` from `abckx`. Existing candidates
+are updated by merge only. An already-integrated release creates no candidate.
+The reusable `abckx-ci` validates the exact candidate SHA with read-only access.
+A green result opens one `chore(upstream): sync to vX.Y.Z` PR against `abckx`;
+neo-dev reviews and merges. No automatic release, tag, image or deployment.
+
+`GITHUB_TOKEN` pushes/PRs do not trigger ordinary push/pull_request workflows.
+The explicit reusable CI call is therefore mandatory, not a reliance on PR events.
+Its current coverage is the existing fork CI described below; wider-suite coverage
+belongs to #18. An owner may need to trigger additional required PR checks under
+the repository's policy before merge; the automation never bypasses that policy.
+
+If upstream changes `.github/workflows/**` in either the release or the master
+mirror, or the actual candidate would change workflow files, **no branch is
+pushed**. A labeled `upstream-conflict` issue titled
+`upstream vX.Y.Z changes workflows: manual sync` lists the files. This is the
+approved token-only exception: neo-dev performs manual sync with its own approved
+workflow-write identity. Do not add a PAT/App secret or silently omit those files.
+A diverged mirror, merge conflicts or red/cancelled CI also open an issue with the
+affected files and, for CI failures, the run link. Repeated failures reuse the
+issue and refresh changed diagnostics. Fix the cause and run the workflow again.
+Scratch branches are retained for diagnosis and reused, not force-pushed. A stale
+CI result cannot open a new PR after the candidate branch has moved.
+
+Only preparation gets `contents: write`; preparation/final reporting get
+`issues: write`; only final reporting gets `pull-requests: write`. All other
+permissions are disabled; validation gets only `contents: read`. All actions are
+SHA-pinned. The token is passed through an ephemeral credential helper, never a
+remote URL or stored credential. Concurrent sync runs are serialized.
+
+Local regression tests use real disposable Git repositories and mocked GitHub API
+boundaries: `python3 -m unittest discover -s abckx -v`. No local test writes to
+GitHub. Validate YAML with `actionlint`. First live acceptance: after admin
+activation, neo-dev runs **Run workflow**, checks mirror SHA and either the sync
+PR plus its candidate-specific CI link or the manual-sync issue/file list, then
+runs again to confirm no duplicate. Live activation/token permissions remain
+NOT MEASURED until that run. Rollback: disable `abckx-upstream` or revert #17;
+close an unwanted sync PR and remove its scratch branch only after diagnosis.
+Already mirrored upstream commits remain upstream commits. No running service is
+changed. Rollback duration: NOT MEASURED.
+
 ## Upstream workflow decisions (#3)
 
 - `codeql-analysis`: guard upstream-only scheduled/master scanning. The fork's

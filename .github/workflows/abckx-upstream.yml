@@ -1,0 +1,69 @@
+name: abckx-upstream
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: abckx-upstream
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.repository == 'openabckx/authelia' && github.ref == 'refs/heads/abckx'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+    outputs:
+      state: ${{ steps.sync.outputs.state }}
+      sha: ${{ steps.sync.outputs.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare upstream merge without workflow writes
+        id: sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python3 abckx/upstream_sync.py prepare
+
+  validate:
+    needs: prepare
+    if: needs.prepare.outputs.sha != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/abckx-ci.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
+
+  finish:
+    needs: [prepare, validate]
+    if: always() && needs.prepare.result == 'success' && needs.prepare.outputs.sha != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      # Run the trusted orchestrator, not code from the candidate merge.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Open reviewed sync PR or conflict issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_STATE: ${{ needs.prepare.outputs.state }}
+          CI_RESULT: ${{ needs.validate.result }}
+        run: python3 abckx/upstream_sync.py finish
