@@ -33,6 +33,9 @@ func TestNotificationOverlay(t *testing.T) {
 				original, err := os.ReadFile(filepath.Join("..", "internal", "templates", "embed", "notification", filename))
 				require.NoError(t, err)
 				want, got := field.FindAllString(string(original), -1), field.FindAllString(string(data), -1)
+				// Labels are now localized; titles are also present in both text verification types (#27).
+				want = slices.DeleteFunc(want, func(s string) bool { return s == ".LinkText" || s == ".RevocationLinkText" })
+				want = append(want, ".Title")
 				slices.Sort(want)
 				slices.Sort(got)
 				require.Equal(t, slices.Compact(want), slices.Compact(got), "preserve every runtime field")
@@ -60,7 +63,7 @@ func TestNotificationOverlay(t *testing.T) {
 				data     any
 				values   []string
 			}{
-				{"Event", provider.GetEventEmailTemplate(), templates.EmailEventValues{Title: "Account event", DisplayName: "Test User", RemoteIP: "192.0.2.1", BodyPrefix: "A", BodyEvent: "password", BodySuffix: "changed", Details: map[string]any{"Action": "Reset"}}, []string{"Account event", "Test User", "192.0.2.1", "password", "changed", "Action", "Reset"}},
+				{"Event", provider.GetEventEmailTemplate(), templates.EmailEventValues{Title: "Account event", DisplayName: "Test User", RemoteIP: "192.0.2.1", BodyPrefix: "A", BodyEvent: "password", BodySuffix: "changed", Details: map[string]any{"Action": "Reset"}}, []string{"Account event", "Test User", "192.0.2.1", "password", "changed", "Ação", "Reset"}},
 				{"IdentityVerificationJWT", provider.GetIdentityVerificationJWTEmailTemplate(), templates.EmailIdentityVerificationJWTValues{Title: "Verify identity", DisplayName: "Test User", Domain: "example.com", RemoteIP: "192.0.2.1", LinkURL: "https://login.example.com/verify", LinkText: "Verify", RevocationLinkURL: "https://login.example.com/revoke", RevocationLinkText: "Revoke"}, []string{"Test User", "example.com", "192.0.2.1", "https://login.example.com/verify", "https://login.example.com/revoke"}},
 				{"IdentityVerificationOTC", provider.GetIdentityVerificationOTCEmailTemplate(), templates.EmailIdentityVerificationOTCValues{Title: "Verify identity", DisplayName: "Test User", Domain: "example.com", RemoteIP: "192.0.2.1", OneTimeCode: "123456", RevocationLinkURL: "https://login.example.com/revoke", RevocationLinkText: "Revoke"}, []string{"Test User", "example.com", "192.0.2.1", "123456", "https://login.example.com/revoke"}},
 			}

@@ -2,6 +2,19 @@
 
 ## [unreleased]
 
+### Complete PT-BR security email copy (#27)
+
+- Rebuild to receive the six template overlays with translated runtime titles,
+  event fragments, detail labels/categories, PT-BR buttons and a lighter 600px card.
+  Unknown future values and user descriptions remain unchanged. Security URLs,
+  one-time codes, IP context and runtime footer controls are preserved.
+- Set `ABCKX_EMAIL_SUBJECT_PT_BR=true` and restart to translate SMTP `{title}`.
+  Unset/false keeps upstream subjects; the configured subject prefix is unchanged.
+  This isolated hook does not change filesystem notifier subjects or core events.
+- Rollback: unset subject opt-in and restore the previous template directory/image
+  digest. Sent mail cannot be recalled. Spam placement, real mail-client rendering
+  and rollback duration: NOT MEASURED. Neo-dev/tester owns deployed inbox checks.
+
 ### Fork patch inventory (#22)
 
 - Replace the agent guide with a short English entry point to fork-standard and current coder/reviewer identities.

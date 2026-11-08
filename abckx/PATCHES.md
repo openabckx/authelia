@@ -65,6 +65,9 @@ Tests name executable suites or manual documentation checks. N/A means no runtim
 | `web/index.html` | BrandingStyle call and three escaped body attributes | Pass runtime presentation to portal | #1/#4, #15/#20, #16/#21 | `internal/server/branding_test.go`, `internal/server/branding_color_test.go`, `abckx/browser-smoke.mjs` |
 | `web/src/components/Brand.test.tsx` | Fork footer cases added to existing test | Guard hidden/custom/plain/linked footer and privacy link | #1/#4 | `pnpm --dir web test` |
 | `web/src/components/Brand.tsx` | Inline component rewrite, NOT thin | Runtime footer, privacy preservation, safe links | #1/#4 | `web/src/components/Brand.test.tsx`, `abckx/browser-smoke.mjs` |
+| `internal/notification/smtp_notifier.go` | One subject translation call | Opt-in PT-BR SMTP title substitution | #27 | `internal/notification/subject_abckx_test.go` |
+| `internal/notification/subject_abckx.go` | Fork-only optional title map | Isolate localization from core event logic | #27 | `internal/notification/subject_abckx_test.go` |
+| `internal/notification/subject_abckx_test.go` | Fork-only MIME regression tests | Verify opt-in/default subjects and multipart UTF-8/CRLF | #27 | `go test ./internal/notification` |
 
 ## Existing non-thin patches: follow-up scope
 

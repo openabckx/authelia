@@ -1,24 +1,23 @@
+{{- $titles := dict "Reset your password" "Defina sua senha" "Confirm your identity" "Confirme sua identidade" "Password changed successfully" "Sua senha foi alterada" "Second Factor Method Added" "Método de segundo fator adicionado" "Second Factor Method Removed" "Método de segundo fator removido" -}}
+{{- $title := default .Title (get $titles .Title) -}}
 {{ with env "ABCKX_EMAIL_ENV_BANNER" }}{{ . }}
 {{ end }}iAvançada
 
-Olá {{ .DisplayName }},
+{{ $title }}
 
-Não compartilhe esta notificação nem seu conteúdo com ninguém.
+Olá{{ with .DisplayName }}, {{ . }}{{ end }},
 
-Um código de uso único foi gerado para verificar sua identidade e alterar os dados de segurança da sua conta em {{ .Domain }}.
-
-O código de uso único abaixo deve ser usado somente na solicitação exibida no seu navegador:
+Use o código de uso único abaixo para confirmar sua identidade em {{ .Domain }}, somente na solicitação exibida no seu navegador.
 
 {{ .OneTimeCode }}
 
-Se você NÃO iniciou esta solicitação, suas credenciais podem ter sido comprometidas. Você deve:
+Não compartilhe esta notificação nem seu conteúdo com ninguém. Use somente na solicitação que você iniciou. Se a validade expirou, volte ao portal e faça uma nova solicitação.
 
-1. Revogar usando o endereço abaixo
-2. Redefinir sua senha ou outras credenciais de acesso
-3. Entrar em contato com um administrador
+Não esperava este e-mail? Pode ignorar. Se suspeitar de acesso indevido, revogue esta solicitação, altere sua senha e entre em contato com um administrador.
+Revogar: {{ .RevocationLinkURL }}
 
-Para revogar: {{ .RevocationLinkURL }}
+Ação originada do endereço IP {{ .RemoteIP }}. Nunca compartilhe sua senha.
 
-Esta notificação é destinada a {{ .DisplayName }} e foi gerada por uma ação de {{ .RemoteIP }}. Se você não reconhece esta ação ou está preocupado com a segurança da sua conta, siga as instruções desta notificação.
+iAvançada · Mensagem automática. Não responda a este e-mail.
 
 {{ $brand := branding }}{{ if ne $brand.Text nil }}{{ if $brand.Visible }}{{ if $brand.URL }}{{ $brand.Text }} {{ $brand.URL }}{{ else }}{{ $brand.Text }}{{ end }}{{ end }}{{ else }}Desenvolvido por iAvançada https://iavancada.com.br{{ end }}

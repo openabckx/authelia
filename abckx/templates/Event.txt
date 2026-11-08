@@ -1,16 +1,22 @@
+{{- $titles := dict "Reset your password" "Defina sua senha" "Confirm your identity" "Confirme sua identidade" "Password changed successfully" "Sua senha foi alterada" "Second Factor Method Added" "Método de segundo fator adicionado" "Second Factor Method Removed" "Método de segundo fator removido" -}}
+{{- $title := default .Title (get $titles .Title) -}}
+{{- $words := dict "your" "sua" "a" "um" "Password Reset" "redefinição de senha" "Password Change" "alteração de senha" "Second Factor Method" "método de segundo fator" "was successful." "foi concluída com sucesso." "was added to your account." "foi adicionado à sua conta." "was removed from your account." "foi removido da sua conta." "Action" "Ação" "Category" "Categoria" "Description" "Descrição" "One-Time Password" "Senha de uso único" "WebAuthn Credential" "Credencial WebAuthn" "Second Factor Method Added" "Método de segundo fator adicionado" "Second Factor Method Removed" "Método de segundo fator removido" -}}
 {{ with env "ABCKX_EMAIL_ENV_BANNER" }}{{ . }}
 {{ end }}iAvançada
 
-{{ .Title }}
+{{ $title }}
 
-Olá {{ .DisplayName }},
+Olá{{ with .DisplayName }}, {{ . }}{{ end }},
 
-Esta notificação informa que {{ .BodyPrefix }} {{ .BodyEvent }} {{ .BodySuffix }}
+Esta notificação informa que {{ default .BodyPrefix (get $words .BodyPrefix) }} {{ default .BodyEvent (get $words .BodyEvent) }} {{ default .BodySuffix (get $words .BodySuffix) }}
 
 Detalhes do evento:
-{{- $keys := sortAlpha (keys .Details) }}{{- range $key := $keys }}
-{{ $key }}: {{ index $.Details $key }}
+{{ range $key := sortAlpha (keys .Details) }}{{ default $key (get $words $key) }}: {{ if or (eq $key "Action") (eq $key "Category") }}{{ $value := printf "%v" (index $.Details $key) }}{{ default $value (get $words $value) }}{{ else }}{{ index $.Details $key }}{{ end }}
 {{ end }}
-Esta notificação é destinada a {{ .DisplayName }} e foi gerada por uma ação de {{ .RemoteIP }}. Se você não reconhece esta ação ou está preocupado com a segurança da sua conta, altere sua senha e entre em contato com um administrador.
+Não reconhece esta ação? Altere sua senha e entre em contato com um administrador.
+
+Ação originada do endereço IP {{ .RemoteIP }}. Nunca compartilhe sua senha.
+
+iAvançada · Mensagem automática. Não responda a este e-mail.
 
 {{ $brand := branding }}{{ if ne $brand.Text nil }}{{ if $brand.Visible }}{{ if $brand.URL }}{{ $brand.Text }} {{ $brand.URL }}{{ else }}{{ $brand.Text }}{{ end }}{{ end }}{{ else }}Desenvolvido por iAvançada https://iavancada.com.br{{ end }}
