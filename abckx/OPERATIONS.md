@@ -14,7 +14,7 @@ Base release target = upstream v4.39.28; the fork also carries upstream master c
 | logo, favicon | iAvançada official files baked in | override: mount your `logo.png` / `favicon.ico` into `/abckx/assets/` |
 | accent color | buttons, links, focus, Settings bar | `AUTHELIA_BRANDING_PRIMARY_COLOR=#RRGGBB` (invalid value = refuses to start) |
 | background | image behind the login card | `AUTHELIA_BRANDING_BACKGROUND_IMAGE=true`, `_OPACITY` (0..1), `_BLUR` (0..20) + mount `background.png` |
-| emails | branded PT-BR static copy (code, link, event; html + txt); core strings still English, see #27 | `ABCKX_EMAIL_LOGO_URL`, `ABCKX_EMAIL_ENV_BANNER` |
+| emails | branded PT-BR titles, body, details and buttons (code, link, event; html + txt); opt-in SMTP subjects | `ABCKX_EMAIL_LOGO_URL`, `ABCKX_EMAIL_ENV_BANNER`, `ABCKX_EMAIL_SUBJECT_PT_BR=true` |
 | runtime | non-root UID/GID 1000, built from source, browser-smoked in CI | volumes must be writable by UID 1000 |
 
 ## 2. Minimal deployment
@@ -95,7 +95,7 @@ Then replace the Compose `image` with `authelia:local`. Put it behind a reverse 
 - Deliverability checklist: SPF, DKIM (every key the server signs with must be published), DMARC; sender display name on the
   same brand as the domain; consistent PT-BR copy; real text, not image-only. A new sender lands in spam at first: test with a
   real inbox and mark "not spam".
-- Templates: ours are baked in (`/abckx/templates`), selected by `notifier.template_path` / `AUTHELIA_NOTIFIER_TEMPLATE_PATH`. Static prose is PT-BR; runtime titles, subjects, event fragments, detail keys and button labels still use the core language. Full translation is tracked in [#27](https://github.com/openabckx/authelia/issues/27).
+- Templates: ours are baked in (`/abckx/templates`), selected by `notifier.template_path` / `AUTHELIA_NOTIFIER_TEMPLATE_PATH`. Titles, event fragments, known detail labels/values and buttons are PT-BR; unknown values and user descriptions are preserved. Set `ABCKX_EMAIL_SUBJECT_PT_BR=true` to translate SMTP `{title}` too, preserving the configured prefix. Unset/false retains upstream subjects; filesystem subjects stay unchanged. Rebuild for the new templates/hook, then restart after changing the opt-in.
   The "set password" email is the same for invite and forgot-password.
 
 ## 5. Users

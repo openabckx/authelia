@@ -96,10 +96,19 @@ the previous image digest. Rollback duration and production rendering: NOT MEASU
 ## Notification branding (#14)
 
 The image ships `abckx/templates/` through `AUTHELIA_NOTIFIER_TEMPLATE_PATH`.
-These six operator-owned overrides retain upstream table layouts, inline styles,
-Outlook markup and security fields. Keep them current when upstream changes
-notification data. Static copy is PT-BR; runtime titles, subjects, event fragments,
-detail keys and button labels keep the language supplied by core.
+These six operator-owned overrides use inline styles and a light 600px table
+card, retaining security fields and revocation URLs. Explicit template maps
+translate the documented runtime titles, event fragments and detail keys/values.
+User-provided descriptions and unknown future strings remain unchanged. Keep
+these maps current when upstream adds notification events. Buttons use PT-BR labels.
+
+SMTP subject localization is separately opt-in: set `ABCKX_EMAIL_SUBJECT_PT_BR=true`
+and restart. Only `{title}` is translated; the configured prefix is preserved.
+Unset/false retains upstream behavior. Filesystem subjects remain upstream text.
+The one-line SMTP hook and fork-owned helper are inventoried in `PATCHES.md`.
+Upstream localization requests: [#11742](https://github.com/authelia/authelia/issues/11742)
+and [#12333](https://github.com/authelia/authelia/issues/12333). No general i18n engine
+or event/authentication changes are included in this fork.
 
 - `ABCKX_EMAIL_LOGO_URL`: absolute HTTPS image URL, normally the login host's
   `/static/media/logo.png`. Empty/unset means no image, only the iAvançada header.
@@ -112,10 +121,11 @@ detail keys and button labels keep the language supplied by core.
   Already sent emails cannot be recalled. Rollback duration: NOT MEASURED.
 
 Templates are UTF-8 with CRLF, including on Linux. Run `go test ./abckx` from
-repo root. Set `ABCKX_EMAIL_PREVIEW_DIR` to an absolute output directory to render
-three safe sample HTML previews through the real provider. The committed
-`previews/` files use example.com links and a sample code, never real credentials.
-Mailbox-client rendering remains tester-owned after image deployment.
+repo root. Set `ABCKX_PTBR_PREVIEW_DIR` to an absolute output directory to render
+four PT-BR HTML previews (three types plus password changed) through the real provider.
+The older `ABCKX_EMAIL_PREVIEW_DIR` probe remains available for unknown-string fixtures.
+The committed `previews/` files use example.com links and a sample code, never real credentials.
+Mailbox-client rendering and spam placement remain tester-owned after image deployment.
 
 ## Publication and rollback
 
@@ -243,5 +253,7 @@ Live cold/warm CI duration and cache savings: NOT MEASURED.
 For local worktrees whose basename is not `authelia`, set
 `BUILDKITE_PIPELINE_SLUG` to that basename for the Go command. Upstream's
 `TestShouldExecCommandOnAutheliaRootPath` explicitly supports this override;
-CI already checks out into `authelia`, so needs no override.
+CI already checks out into `authelia`, so needs no override. Stop the local
+runtime probe before Go units: `TestAddressOutputValues` binds port 9091 and
+panics after a failed bind when the smoke binary still owns that port.
 Rollback: revert the #18 workflow change; no runtime/image configuration changes.

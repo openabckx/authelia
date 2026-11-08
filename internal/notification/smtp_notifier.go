@@ -185,7 +185,7 @@ func (n *SMTPNotifier) buildMessage(recipient mail.Address, subject string, et *
 		return nil, fmt.Errorf("failed to set to address: %w", err)
 	}
 
-	msg.Subject(strings.ReplaceAll(n.config.Subject, "{title}", subject))
+	msg.Subject(strings.ReplaceAll(n.config.Subject, "{title}", abckxNotificationTitle(subject)))
 
 	switch {
 	case n.config.DisableHTMLEmails:
