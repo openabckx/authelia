@@ -69,6 +69,25 @@ class WorkflowContract(unittest.TestCase):
         for action in re.findall(r"uses: (\S+)", workflow):
             self.assertRegex(action, r"@[0-9a-f]{40}$")
 
+    def test_full_upstream_unit_commands_run_before_frontend_build(self):
+        workflow = (ROOT / ".github/workflows/abckx-ci.yml").read_text()
+        command = "go test -coverprofile=coverage.txt -covermode=atomic -race -json -count=1 $packages"
+        self.assertIn(command, workflow)
+        self.assertIn("packages=$(go list ./... | grep -v suites)", workflow)
+        self.assertIn("TZ: UTC", workflow)
+        self.assertIn('python3 abckx/check_go_results.py "$RUNNER_TEMP/go-tests.jsonl" abckx/known-upstream-failures.txt "$status"', workflow)
+        self.assertLess(workflow.index(command), workflow.index("pnpm build"))
+        self.assertIn("pnpm test", workflow)
+        self.assertIn("CI: 'true'", workflow)
+        self.assertNotIn("continue-on-error", workflow)
+
+    def test_dependency_caches_and_required_gate_summary(self):
+        workflow = (ROOT / ".github/workflows/abckx-ci.yml").read_text()
+        for required in ("cache-dependency-path: authelia/go.sum", "pnpm store path",
+                         "uses: actions/cache@", "web/pnpm-lock.yaml",
+                         "if: always()", "GITHUB_STEP_SUMMARY", "Required for merge"):
+            self.assertIn(required, workflow)
+
     def test_upstream_automation_is_guarded(self):
         for name in ("codeql-analysis", "contributors", "pr-commentary", "pr-labels", "scorecard"):
             with self.subTest(workflow=name):

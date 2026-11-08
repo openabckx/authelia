@@ -1,0 +1,10 @@
+# Exact package and leaf test | reason | observed upstream version/commit
+# Approved by neo-dev: https://github.com/openabckx/authelia/issues/18#issuecomment-6715821327
+# Clean upstream master aafb20467142d57f2445f0f0ef62c2643055700d, Go 1.27.3, TZ=UTC.
+# Latest stable release at observation: v4.39.28; failures reproduced on master, not claimed on that tag.
+github.com/authelia/authelia/v4/internal/model TestNewOAuth2DeviceCodeSessionFromRequest/ShouldHandleValueTypes | Hardcoded local CheckedAt differs from Unix timestamp by 11 hours; closed upstream PR #12154 describes this assumption | master aafb20467142d57f2445f0f0ef62c2643055700d
+github.com/authelia/authelia/v4/internal/model TestNewOAuth2DeviceCodeSessionFromRequest/ShouldHandleValueTypesEmptyRequestedScopes | Same hardcoded local CheckedAt expectation | master aafb20467142d57f2445f0f0ef62c2643055700d
+github.com/authelia/authelia/v4/internal/model TestWebAuthnCredential/ShouldUpdate | time.Local expected but implementation stores time.UTC; structural time equality fails | master aafb20467142d57f2445f0f0ef62c2643055700d
+github.com/authelia/authelia/v4/internal/model TestWebAuthnCredential/ShouldUpdateFIDOU2F | Same Local versus UTC structural equality | master aafb20467142d57f2445f0f0ef62c2643055700d
+github.com/authelia/authelia/v4/internal/model TestWebAuthnCredential/ShouldNotUpdateExistingRPID | Same Local versus UTC structural equality | master aafb20467142d57f2445f0f0ef62c2643055700d
+github.com/authelia/authelia/v4/internal/model TestWebAuthnCredential/ShouldUpdateCloneWarning | Same Local versus UTC structural equality | master aafb20467142d57f2445f0f0ef62c2643055700d
