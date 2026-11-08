@@ -27,7 +27,10 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           path: authelia
+          fetch-depth: 0
           persist-credentials: false
+      - name: Check fork patch inventory against upstream mirror
+        run: python3 abckx/check_patch_manifest.py --base origin/master
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: authelia/go.mod

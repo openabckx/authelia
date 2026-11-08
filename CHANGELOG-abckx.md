@@ -2,6 +2,14 @@
 
 ## [unreleased]
 
+### Fork patch inventory (#22)
+
+- Replace the agent guide with a short English entry point to fork-standard and current coder/reviewer identities.
+- Inventory every changed path outside `abckx/`, including footer, accent, background, notification and asset routes.
+- Reject unlisted paths in fork CI against the full upstream mirror history; document existing non-thin patches for follow-up.
+- No image rebuild, runtime setting or product behavior change. Rollback: revert this docs/CI change.
+- Production behavior, CI history-fetch overhead and rollback duration: NOT MEASURED.
+
 ### Image operator documentation (#25)
 
 - Add a short fork README entry point and the neo-dev-owned operations manual,

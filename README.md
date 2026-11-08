@@ -40,8 +40,8 @@ is scheduled daily at 04:23 UTC (requires `abckx` as default and Actions PR perm
 opens reviewed sync PRs, or reports manual-sync/conflict failures with `upstream-conflict` issues. See
 [the sync procedure](abckx/README.md#upstream-release-sync-17) for activation and retry details.
 The holding's **fork-standard** requires config/asset overrides first, thin hooks only, and no core fixes here.
-`abckx/PATCHES.md` is the required hook manifest; it is not present yet (tracked in
-[#22](https://github.com/openabckx/authelia/issues/22)). Until it lands, inspect the fork diff and changelog before syncing.
+[The patch manifest](abckx/PATCHES.md) lists every changed path outside `abckx/`, its reason and covering tests.
+CI rejects unlisted paths against the upstream mirror. Inspect the manifest and changelog before syncing.
 Back up storage and users before upgrading; schema migrations can make rollback require a restore.
 Neo-dev reviews, releases and deploys; the tester proves the user flow in dev before production.
 
